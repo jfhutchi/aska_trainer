@@ -37,7 +37,6 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             return ids;
         }
         catch (TribeUnavailableException error) { Unavailable(error); return Array.Empty<string>(); }
-        catch (Exception error) { Fault(error); throw; }
     }
 
     public bool TrySnapshot(string stableId, out VillagerSnapshot? snapshot, out string? error)
@@ -56,14 +55,14 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             return true;
         }
         catch (TribeUnavailableException failure) { error = failure.Message; Unavailable(failure); return false; }
-        catch (Exception failure) { error = failure.Message; Fault(failure); return false; }
     }
 
     public bool TryApply(string stableId, VillagerEditRequest request, out string? error)
     {
+        try { request = request.Clamp(); }
+        catch (ArgumentOutOfRangeException failure) { error = failure.Message; return false; }
         try
         {
-            request = request.Clamp();
             if (request.Age is not null) throw new TribeUnavailableException(AgeUnavailable);
             if (request.WarmthFraction is not null) throw new TribeUnavailableException(WarmthUnavailable);
             var villager = Resolve(stableId);
@@ -89,8 +88,6 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             return true;
         }
         catch (TribeUnavailableException failure) { error = failure.Message; Unavailable(failure); return false; }
-        catch (ArgumentOutOfRangeException failure) { error = failure.Message; Unavailable(failure); return false; }
-        catch (Exception failure) { error = failure.Message; Fault(failure); return false; }
     }
 
     public bool TryHeal(string stableId, out string? error) => TryApply(stableId, new(HealthFraction: 1), out error);
@@ -105,7 +102,6 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             return !string.IsNullOrWhiteSpace(id) && ResolvePopulation().TryGetValue(id, out var current) && current == villager;
         }
         catch (TribeUnavailableException error) { Unavailable(error); return false; }
-        catch (Exception error) { Fault(error); throw; }
     }
 
     private Villager Resolve(string id) => ResolvePopulation().TryGetValue(id, out var villager)
@@ -115,6 +111,13 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
     {
         RequireSession();
         if (nativeFault is not null) throw new InvalidOperationException(nativeFault);
+        try { return ReadPopulation(); }
+        catch (TribeUnavailableException) { throw; }
+        catch (Exception error) { Fault(error); throw; }
+    }
+
+    private Dictionary<string, Villager> ReadPopulation()
+    {
         if (!players.TryGetLocalPlayer(out var player)) throw new TribeUnavailableException("Local player is unavailable.");
         var population = GameObjectResolver.FindUnique<PopulationManager>();
         var settlement = GameObjectResolver.FindUnique<Settlement>();

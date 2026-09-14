@@ -7,6 +7,7 @@ using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
 using HutchASKA.Plugin.UI.Tabs;
 using HutchASKA.Plugin.Items;
+using HutchASKA.Plugin.Tribe;
 
 namespace HutchASKA.Plugin.UI;
 
@@ -20,6 +21,7 @@ internal sealed class TrainerWindow
     private readonly WorldTab worldTab;
     private readonly ItemsTab itemsTab;
     private readonly CraftingTab craftingTab;
+    private readonly TribeTab tribeTab;
     private readonly GUI.WindowFunction drawContents;
     private readonly Il2CppStringArray tabs = new(new[]
         { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" });
@@ -29,7 +31,8 @@ internal sealed class TrainerWindow
     private bool open;
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
-        MovementSpeedFeature movement, GameSpeedFeature speed, AskaItemCatalog catalog, GiveItemFeature give)
+        MovementSpeedFeature movement, GameSpeedFeature speed, AskaItemCatalog catalog, GiveItemFeature give,
+        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe)
     {
         this.guard = guard;
         this.config = config;
@@ -39,6 +42,7 @@ internal sealed class TrainerWindow
         worldTab = new WorldTab(controls, speed, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls);
+        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe);
         diagnostics = new DiagnosticsPanel(host, guard, versions);
         drawContents = (Action<int>)DrawContents;
     }
@@ -56,7 +60,7 @@ internal sealed class TrainerWindow
 
     public void UpdateContext()
     {
-        if (!guard.Decision.Allowed) itemsTab.Clear();
+        if (!guard.Decision.Allowed) { itemsTab.Clear(); tribeTab.Clear(); }
     }
 
     private void DrawContents(int id)
@@ -74,6 +78,7 @@ internal sealed class TrainerWindow
                 else if (selectedTab == 1) itemsTab.Draw();
                 else if (selectedTab == 2) craftingTab.Draw();
                 else if (selectedTab == 3) worldTab.Draw();
+                else if (selectedTab == 4) tribeTab.Draw();
                 else if (selectedTab == 5)
                 {
                     restoreStates.Value = GUILayout.Toggle(restoreStates.Value, "Restore enabled states on next launch (opt in)");

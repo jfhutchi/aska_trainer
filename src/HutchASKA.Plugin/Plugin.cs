@@ -10,6 +10,8 @@ using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Input;
 using HutchASKA.Plugin.Items;
 using HutchASKA.Plugin.Crafting;
+using HutchASKA.Plugin.Tribe;
+using HutchASKA.Core.Tribe;
 using UnityEngine;
 
 namespace HutchASKA.Plugin;
@@ -51,13 +53,29 @@ public sealed class Plugin : BasePlugin
         host.Register(new FreeCraftingFeature());
         host.Register(new FreeBuildingFeature());
         host.Register(new FreeRepairsFeature());
+        var tribe = new AskaTribeContext(Players, guard, error => Log.LogError($"Tribe discovery: {error}"));
+        var tribeGod = new VillagerGodModeFeature(tribe);
+        tribeGod.Hosted = host.Register(tribeGod);
+        host.Register(new TribeNeedsFeature(tribe, "tribe.food", "No Hunger (Tribe)", new(FoodFraction: 1)));
+        host.Register(new TribeNeedsFeature(tribe, "tribe.water", "No Thirst (Tribe)", new(WaterFraction: 1)));
+        host.Register(new TribeNeedsFeature(tribe, "tribe.energy", "Infinite Energy (Tribe)", new(EnergyFraction: 1)));
+        host.Register(new TribeNeedsFeature(tribe, "tribe.rest", "Full Rest (Tribe)", new(RestFraction: 1)));
+        host.Register(new TribeNeedsFeature(tribe, "tribe.happiness", "Max Happiness (Tribe)", new(HappinessFraction: 1)));
+        host.Register(new TribeUnavailableFeature("tribe.temperature", "Temperature Immunity (Tribe)", AskaTribeContext.WarmthUnavailable));
+        host.Register(new TribeUnavailableFeature("tribe.aging", "Freeze Aging", AskaTribeContext.AgeUnavailable));
+        var healTribe = new TribeRestoreFeature(tribe, true);
+        healTribe.Hosted = host.Register(healTribe);
+        var restoreTribe = new TribeRestoreFeature(tribe, false);
+        restoreTribe.Hosted = host.Register(restoreTribe);
+        var editor = new VillagerEditorService(tribe);
+        editor.Hosted = host.Register(editor);
         var config = new RuntimeConfiguration(Config, host, movement, gameSpeed);
         var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, catalog, give);
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, catalog, give, editor, healTribe, restoreTribe);
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
         Log.LogInfo($"{PluginName} {PluginVersion}; ASKA {versions.Game}; Unity {versions.Unity}; BepInEx {versions.BepInEx}");
