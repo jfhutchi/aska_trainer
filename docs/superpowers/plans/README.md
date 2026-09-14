@@ -7,7 +7,9 @@ These plans are intended to be executed in order by **local Codex on the Windows
 1. [`2026-09-14-hutchaska-stage-1-foundation.md`](2026-09-14-hutchaska-stage-1-foundation.md) — repository hygiene, MIT license, README, changelog, pure core, tests, local plugin project, build/install scripts, single-player guard contract, diagnostics shell, CI.
 2. [`2026-09-14-hutchaska-stage-2-player-world.md`](2026-09-14-hutchaska-stage-2-player-world.md) — God Mode, stamina, survival, movement, world time/game speed, Player/World UI and hotkeys.
 3. [`2026-09-14-hutchaska-stage-3-items-crafting.md`](2026-09-14-hutchaska-stage-3-items-crafting.md) — durability, freshness, retain-on-use, item browser/give flow, crafting, building, repairs.
-4. [`2026-09-14-hutchaska-stage-4-tribe-release.md`](2026-09-14-hutchaska-stage-4-tribe-release.md) — global tribe controls, individual villager editor, instant normal recruitment, final diagnostics, packaging, README/license audit, release validation.
+4. [`2026-09-14-hutchaska-stage-4-tribe-release-final.md`](2026-09-14-hutchaska-stage-4-tribe-release-final.md) — global tribe controls, individual villager editor, instant normal recruitment, final diagnostics, packaging, README/license audit, release validation.
+
+The earlier `2026-09-14-hutchaska-stage-4-tribe-release.md` is superseded by the `-final` plan and must not be executed.
 
 ## Required source documents
 
