@@ -1,6 +1,5 @@
-using BepInEx.Configuration;
+using HutchASKA.Core.Compatibility;
 using HutchASKA.Plugin.Infrastructure;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
 using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Player;
@@ -22,8 +21,9 @@ internal sealed class TrainerWindow
     private readonly CraftingTab craftingTab;
     private readonly TribeTab tribeTab;
     private readonly GUI.WindowFunction drawContents;
-    private readonly Il2CppStringArray tabs = new(new[]
-        { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" });
+    private readonly CallbackGuard renderGuard;
+    private readonly string[] tabs =
+        { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" };
     private Rect bounds = new(40, 40, 850, 480);
     private Vector2 scroll;
     private int selectedTab;
@@ -31,9 +31,11 @@ internal sealed class TrainerWindow
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
         MovementSpeedFeature movement, GameSpeedFeature speed, AskaItemCatalog catalog, GiveItemFeature give,
-        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe, DiagnosticsService diagnosticsService)
+        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe,
+        DiagnosticsService diagnosticsService, Action<Exception> reportRenderError)
     {
         this.guard = guard;
+        renderGuard = new CallbackGuard(reportRenderError);
         var controls = new FeatureControls(host, guard, config);
         playerTab = new PlayerTab(controls, movement, config);
         worldTab = new WorldTab(controls, speed, config);
@@ -48,13 +50,19 @@ internal sealed class TrainerWindow
 
     public bool Draw()
     {
+        return renderGuard.TryRun(DrawWindow) && open;
+    }
+
+    public bool CanDraw => !renderGuard.IsFaulted;
+
+    private void DrawWindow()
+    {
         open = true;
         bounds.width = Mathf.Min(850, Screen.width - 20);
         bounds.height = Mathf.Min(480, Screen.height - 20);
         bounds.x = Mathf.Clamp(bounds.x, 0, Mathf.Max(0, Screen.width - bounds.width));
         bounds.y = Mathf.Clamp(bounds.y, 0, Mathf.Max(0, Screen.height - bounds.height));
         bounds = GUI.Window(0x4841534B, bounds, drawContents, $"HutchASKA {Plugin.PluginVersion}");
-        return open;
     }
 
     public void UpdateContext()
@@ -66,11 +74,22 @@ internal sealed class TrainerWindow
 
     private void DrawContents(int id)
     {
+        // Catch inside the native delegate: the IL2CPP trampoline otherwise swallows the fault.
+        renderGuard.TryRun(() =>
+        {
+            var previousEnabled = GUI.enabled;
+            try { DrawContentsCore(); }
+            finally { GUI.enabled = previousEnabled; }
+        });
+    }
+
+    private void DrawContentsCore()
+    {
         GUILayout.BeginVertical();
         try
         {
             GUILayout.Label(guard.Decision.Allowed ? "Single-player confirmed" : $"Blocked: {guard.Decision.Reason}");
-            selectedTab = GUILayout.Toolbar(selectedTab, tabs);
+            DrawTabs();
             scroll = GUILayout.BeginScrollView(scroll);
             try
             {
@@ -88,5 +107,23 @@ internal sealed class TrainerWindow
         }
         finally { GUILayout.EndVertical(); }
         GUI.DragWindow(new Rect(0, 0, bounds.width, 20));
+    }
+
+    private void DrawTabs()
+    {
+        // Both GUIContent.Temp(string[]) and the final Toolbar overload are stripped in ASKA.
+        GUILayout.BeginHorizontal();
+        try
+        {
+            for (var i = 0; i < tabs.Length; i++)
+            {
+                if (GUILayout.Button(i == selectedTab ? $"[{tabs[i]}]" : tabs[i]) && i != selectedTab)
+                {
+                    selectedTab = i;
+                    scroll = Vector2.zero;
+                }
+            }
+        }
+        finally { GUILayout.EndHorizontal(); }
     }
 }

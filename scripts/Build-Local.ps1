@@ -27,3 +27,4 @@ $buildOptions = @()
 if ($NoDebugSymbols) { $buildOptions = @('-p:DebugType=None', '-p:DebugSymbols=false') }
 dotnet build (Join-Path $PSScriptRoot '..\src\HutchASKA.Plugin\HutchASKA.Plugin.csproj') -c Release @buildOptions
 if ($LASTEXITCODE -ne 0) { throw "Plugin build failed with exit code $LASTEXITCODE" }
+& (Join-Path $PSScriptRoot 'Test-LocalGuiInterop.ps1') -AskaGameDir $resolved

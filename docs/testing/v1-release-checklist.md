@@ -1,4 +1,4 @@
-# HutchASKA 0.1.0 development candidate acceptance
+# HutchASKA 0.1.1 development candidate acceptance
 
 Date: 2026-09-14. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
 
@@ -22,8 +22,9 @@ The installed game still matches the original build target. A future update requ
 
 | Check | Result |
 | --- | --- |
-| Release core test suite | PASS: 63 tests, zero failures/skips |
-| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.0 |
+| Release core test suite | PASS: 66 tests, zero failures/skips |
+| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.1 |
+| Managed IMGUI unstripping regression | PASS: failed on both toolbar stubs before repair; 22 reachable methods pass after repair. Native rendering retest pending |
 | Red/green development | Core scaffold, registry, guard/breaker, settings, catalog, tribe contracts and rescan/reset tests were run failing before implementation and passing after |
 | Runtime isolation | Pure tests cover unknown/multiplayer block, session loss, partial enable, bounded failure and explicit cleanup retry |
 | Native hook scope review | Local player/owned tribe damage only; verified stamina entry points; no shared inventory-removal, arbitrary spawn or achievement patches |
@@ -36,9 +37,11 @@ The installed game still matches the original build target. A future update requ
 | Dependency notices | Actual assembly/package versions checked against linked upstream licenses; runtime texts included |
 | Public CI | Configured for pure core; no remote CI run or gameplay result claimed |
 
-Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The final archive is `artifacts/HutchASKA-v0.1.0.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
+Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current archive is `artifacts/HutchASKA-v0.1.1.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
 
 ## Startup evidence
+
+The following evidence is historical for 0.1.0. The user's subsequent menu interaction exposed a repeated toolbar unstripping exception. Version 0.1.1 contains a source repair and passing automated checks, but its native UI retest is still pending. See [GUI repair evidence](gui-rendering-repair.md).
 
 PASS: final combined Player/World/Items/Tribe/Diagnostics DLLs extracted from the candidate ZIP loaded through a fresh BepInEx startup. The log records HutchASKA 0.1.0, Steam build 25186770, application version 0.4, Unity 6000.3.12f1, BepInEx 6.0.0-be.755, IL2CPP behaviour registration, all 11 expected Incompatible controls and successful chainloader completion. Unknown session was blocked and no HutchASKA exception was observed. No F8 interaction or gameplay acceptance is claimed. Earlier Stage 1 and intermediate startups also passed.
 

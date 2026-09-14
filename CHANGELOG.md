@@ -4,6 +4,12 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Fixed in 0.1.1 development candidate
+
+- Replaced the tab toolbar with buttons because both the string-array conversion and final toolbar implementation are unstripping-failure stubs in the installed ASKA interop.
+- Contained rendering exceptions inside the native window callback and outer draw call. The first fault is logged, the menu closes through its normal input/cursor restoration path, and rendering stays disabled until restart.
+- Added a local managed IMGUI call-path check to build/install/package helpers and three callback containment regressions (66 core tests total). Native F8/tab/input retesting remains required.
+
 ### Added
 
 - Current-owned-villager adapter, GUID snapshots/search, independent tribe needs controls, narrow villager damage interception, one-shot healing/restoration, and a changed-field-only villager editor.

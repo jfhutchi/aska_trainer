@@ -66,6 +66,7 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
 
     private void SetVisible(bool value)
     {
+        if (value && window is { CanDraw: false }) return;
         if (visible == value) return;
         visible = value;
         if (visible)

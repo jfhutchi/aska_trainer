@@ -6,7 +6,7 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-**Version `0.1.0` is a development candidate, not a gameplay-validated v1 release.** All four implementation stages are represented in source, including explicit Incompatible controls where safe native hooks could not be established. There are 63 passing core tests and a successful local plugin build. Plugin startup was observed in ASKA; gameplay acceptance is **MANUAL VERIFICATION REQUIRED**. See the [release checklist](docs/testing/v1-release-checklist.md), [implementation ledger](docs/testing/implementation-status.md) and [loader evidence](docs/testing/local-loader-check.md). All cheats start off on first installation; automatic restoration of enabled states defaults to off.
+**Version `0.1.1` is a development candidate, not a gameplay-validated v1 release.** All four implementation stages are represented in source, including explicit Incompatible controls where safe native hooks could not be established. There are 66 passing core tests and a successful local plugin build. Version 0.1.0 startup was observed, but opening its menu exposed stripped Unity toolbar helpers. Version 0.1.1 removes those calls and contains rendering faults; an in-game retest remains **MANUAL VERIFICATION REQUIRED**. See the [GUI repair evidence](docs/testing/gui-rendering-repair.md), [release checklist](docs/testing/v1-release-checklist.md), [implementation ledger](docs/testing/implementation-status.md) and [loader evidence](docs/testing/local-loader-check.md). All cheats start off on first installation; automatic restoration of enabled states defaults to off.
 
 Source projects and local build/install helpers are available. No validated release archive has been published. An in-game smoke test is required before a release can claim runtime compatibility.
 
@@ -83,7 +83,7 @@ $env:ASKA_GAME_DIR = "C:\Program Files (x86)\Steam\steamapps\common\ASKA"
 .\scripts\Build-Local.ps1
 ```
 
-Without an explicit path, the helper discovers exactly one ASKA installation through Steam libraries; ambiguous or unavailable discovery requires `-AskaGameDir`. It builds `src\HutchASKA.Plugin\HutchASKA.Plugin.csproj` in Release configuration. Missing references produce an actionable error. The installation helper builds first, refuses installation while ASKA is running and copies only HutchASKA-authored plugin and core DLLs:
+Without an explicit path, the helper discovers exactly one ASKA installation through Steam libraries; ambiguous or unavailable discovery requires `-AskaGameDir`. It builds `src\HutchASKA.Plugin\HutchASKA.Plugin.csproj` in Release configuration and checks reachable managed IMGUI methods for known unstripping-failure stubs using the installed Mono.Cecil and interop DLLs. Missing references produce an actionable error. This static check cannot prove native rendering behavior. The installation helper builds first, refuses installation while ASKA is running and copies only HutchASKA-authored plugin and core DLLs:
 
 ```powershell
 .\scripts\Install-Local.ps1
@@ -101,7 +101,7 @@ Create a local development candidate with PowerShell 7:
 .\scripts\Package-Release.ps1
 ```
 
-Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.0.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.1.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
 
 Repository-relative research/checklist links in the packaged README refer to the matching source checkout identified in BUILDINFO; those source documents are not duplicated in the ZIP.
 
