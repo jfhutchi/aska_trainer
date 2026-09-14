@@ -12,12 +12,26 @@ The earlier BepInEx log identifies **6.0.0-be.755**, commit
 The installed assembly informational version independently matches that BepInEx
 build. This historical startup is not evidence that HutchASKA loaded.
 
-## Current limitation
+## Resolved loader startup
 
-**MANUAL VERIFICATION REQUIRED:** the initial direct launch exited/relaunched
+The initial direct launch exited/relaunched
 through Steam. Normal Steam startup ran ASKA, but did not update the BepInEx log
 or load CoreCLR. No HutchASKA startup message was observed. The local Doorstop
 configuration has enabled=true and points to BepInEx.Unity.IL2CPP.dll.
+
+Doorstop's documented native loader sets DOORSTOP_DISABLE in its process
+environment. Testing the local ignore_disable_switch=true configuration option
+resolved startup: CoreCLR loaded and a fresh BepInEx log on 2026-09-14 recorded
+Loading [HutchASKA 0.1.0], registration of HutchASKA.Plugin.UI.TrainerBehaviour,
+the blocked Unknown session state, and successful chainloader completion.
+No HutchASKA exception was observed. This supports an inherited disable variable
+as the loader failure cause. The local configuration change remains in place;
+the original was preserved in a temporary file outside the repository.
+
+**PASS: Stage 1 plugin discovery, IL2CPP behaviour registration, and bootstrap.**
+**MANUAL VERIFICATION REQUIRED: F8 interaction and all gameplay smoke checks.**
+Application.version reports 0.4 and is not the Steam build ID; use the manifest
+build and full game version recorded above for compatibility reporting.
 
 No gameplay controls were exercised and no save was selected or modified by the
 agent. Test game processes were closed gracefully by their observed process IDs.
