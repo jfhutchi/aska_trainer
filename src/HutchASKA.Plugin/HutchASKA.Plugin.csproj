@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../HutchASKA.Core/HutchASKA.Core.csproj" />
+    <Reference Include="BepInEx.Core"><HintPath>$(ASKA_GAME_DIR)/BepInEx/core/BepInEx.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP"><HintPath>$(ASKA_GAME_DIR)/BepInEx/core/BepInEx.Unity.IL2CPP.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="BepInEx.Unity.Common"><HintPath>$(ASKA_GAME_DIR)/BepInEx/core/BepInEx.Unity.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(ASKA_GAME_DIR)/BepInEx/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(ASKA_GAME_DIR)/BepInEx/core/Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Common"><HintPath>$(ASKA_GAME_DIR)/BepInEx/core/Il2CppInterop.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="SandSailorStudio"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/SandSailorStudio.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2Cppmscorlib"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Fusion.Runtime"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/Fusion.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <Target Name="ValidateAskaReferences" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(ASKA_GAME_DIR)' == '' Or !Exists('$(ASKA_GAME_DIR)/ASKA.exe') Or !Exists('$(ASKA_GAME_DIR)/BepInEx/interop/Assembly-CSharp.dll')" Text="ASKA references not found. Set ASKA_GAME_DIR to the ASKA folder containing ASKA.exe, launch ASKA once with BepInEx so BepInEx\interop exists, then build again." />
+    <Error Condition="!Exists('%(Reference.HintPath)')" Text="Required local reference missing: %(Reference.HintPath). Regenerate interop or install the matching BepInEx distribution." />
+  </Target>
+</Project>

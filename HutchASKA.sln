@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CFC6048D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchASKA.Core.Tests", "tests\HutchASKA.Core.Tests\HutchASKA.Core.Tests.csproj", "{1A89376E-7E94-4E90-8C8C-816E763A4185}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HutchASKA.Plugin", "src\HutchASKA.Plugin\HutchASKA.Plugin.csproj", "{206D52DB-8475-49B4-85BE-B778A56EEDDC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,14 @@ Global
 		{1A89376E-7E94-4E90-8C8C-816E763A4185}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A89376E-7E94-4E90-8C8C-816E763A4185}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A89376E-7E94-4E90-8C8C-816E763A4185}.Release|Any CPU.Build.0 = Release|Any CPU
+		{206D52DB-8475-49B4-85BE-B778A56EEDDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{206D52DB-8475-49B4-85BE-B778A56EEDDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{206D52DB-8475-49B4-85BE-B778A56EEDDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{206D52DB-8475-49B4-85BE-B778A56EEDDC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{33D765EE-C507-49F5-B036-E5E4505920BA} = {4776D70C-3057-415F-BB37-98D5C9D0ACDC}
 		{1A89376E-7E94-4E90-8C8C-816E763A4185} = {CFC6048D-5E1A-4862-A318-EE9EC08BDD9F}
+		{206D52DB-8475-49B4-85BE-B778A56EEDDC} = {4776D70C-3057-415F-BB37-98D5C9D0ACDC}
 	EndGlobalSection
 EndGlobal
