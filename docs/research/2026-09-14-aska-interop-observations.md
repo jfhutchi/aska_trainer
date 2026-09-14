@@ -105,6 +105,19 @@ The implementation must patch the narrow requirement/consumption path verified i
 
 ## Confirmed/observed world-time surface
 
+Stage 2 inspection verifies mutable bool `TimeRunningEnabled`, float `TimeSpeedMultiplier`,
+`TimeOfDay`, `dayLength`, `NetworkedCurrentGameTime`, float `GetGameTimeInSeconds(float)`,
+and void `SetGameTime(float)`. Their generated IL invokes native IL2CPP functions; it
+does not reveal units, epoch, wrap semantics, or day-transition side effects. No save
+was used for runtime observation. Thus the +/-1 hour control is Incompatible, with
+no call to SetGameTime. The pure wrapping helper requires explicit caller units and
+has tests for mathematical 24-hour/unit cycles; it is not wired to an assumed ASKA unit.
+
+Freeze Time stores and restores the world's prior TimeRunningEnabled state, checking
+current world identity. Global game speed uses verified Unity `Time.timeScale` get/set
+and restores its captured prior scale on reset, disable, gate loss, and component unload.
+Weather time acceleration is not used as global gameplay acceleration.
+
 `SSSGame.Weather.WeatherSystem` exposes native time controls including:
 
 - `TimeRunningEnabled`

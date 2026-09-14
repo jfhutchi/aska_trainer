@@ -5,6 +5,7 @@ using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.UI;
 using HutchASKA.Plugin.Game;
 using HutchASKA.Plugin.Player;
+using HutchASKA.Plugin.World;
 using UnityEngine;
 
 namespace HutchASKA.Plugin;
@@ -34,6 +35,10 @@ public sealed class Plugin : BasePlugin
         host.Register(new TemperatureImmunityFeature());
         var movement = new MovementSpeedFeature(Players);
         host.Register(movement);
+        host.Register(new WorldTimeFeature(World));
+        host.Register(new TimeStepFeature());
+        var gameSpeed = new GameSpeedFeature();
+        host.Register(gameSpeed);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
