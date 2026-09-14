@@ -1,0 +1,22 @@
+name: Core CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+      - name: Test the net6 core using the .NET 8 SDK
+        run: dotnet test tests/HutchASKA.Core.Tests/HutchASKA.Core.Tests.csproj --configuration Release

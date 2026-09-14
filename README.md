@@ -6,9 +6,9 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Early development toward version `0.1.0`. The design, implementation plans, license, and dependency policy are present. Gameplay features and the trainer UI are planned; none are currently claimed to work in ASKA. All cheats must start off on first installation, and automatic restoration of enabled states must default to off.
+Early development toward version `0.1.0`. The pure core, local build/install scripts, fail-closed session contract, and F8 diagnostics shell are implemented. The core tests and local plugin build pass; gameplay features are still planned. In-game verification remains required. All cheats must start off on first installation, and automatic restoration of enabled states must default to off.
 
-The installation, build, and controls sections describe the intended contract for the upcoming implementation. Release artifacts, projects, and helper scripts are not available at this documentation milestone. An in-game smoke test is required before a release can claim runtime compatibility.
+Source projects and local build/install helpers are available. No validated release archive has been published. An in-game smoke test is required before a release can claim runtime compatibility.
 
 ## Compatibility
 
@@ -45,7 +45,7 @@ God Mode must block damage without inflating maximum health. Durability and fres
 - A local Windows installation of ASKA acquired separately through Steam.
 - A compatible BepInEx 6 IL2CPP installation acquired separately. No ASKA binaries, BepInEx runtime bundle, or generated interop binaries are included here.
 - A first ASKA launch after installing BepInEx, allowing generation of `BepInEx\interop`; close the game before building or installing HutchASKA.
-- For source builds: PowerShell, Git, and a .NET SDK capable of building `net6.0`. Running the core tests also requires a compatible .NET 6 runtime.
+- For source builds: PowerShell, Git, and the .NET 8 SDK (C# 12 source, targeting `net6.0`). Running the core tests also requires a compatible .NET 6 runtime.
 
 ## Install a Release
 
@@ -66,7 +66,7 @@ Keep both DLLs from the same release. To uninstall, close ASKA and remove the Hu
 
 ## Build From Source
 
-The planned solution separates `HutchASKA.Core` (no game dependencies) from `HutchASKA.Plugin` (local game integration). The following commands become usable once the respective projects and scripts are implemented. Run them from the repository root.
+The solution separates `HutchASKA.Core` (no game dependencies) from `HutchASKA.Plugin` (local game integration). The following commands are available. Run them from the repository root.
 
 Set `ASKA_GAME_DIR` to your own ASKA folder containing `ASKA.exe`. This is an illustrative path, not a repository-specific installation setting:
 
@@ -75,19 +75,19 @@ $env:ASKA_GAME_DIR = "C:\Program Files (x86)\Steam\steamapps\common\ASKA"
 .\scripts\Build-Local.ps1
 ```
 
-The helper will build `src\HutchASKA.Plugin\HutchASKA.Plugin.csproj` in Release configuration. Missing or mismatched local reference files must produce an actionable build error. The planned local installation helper builds first and copies only HutchASKA-authored plugin and core DLLs:
+The helper builds `src\HutchASKA.Plugin\HutchASKA.Plugin.csproj` in Release configuration. Missing or mismatched local reference files must produce an actionable build error. The local installation helper builds first and copies only HutchASKA-authored plugin and core DLLs:
 
 ```powershell
 .\scripts\Install-Local.ps1
 ```
 
-The pure core will be testable without an ASKA installation:
+The pure core is testable without an ASKA installation:
 
 ```powershell
 dotnet test tests\HutchASKA.Core.Tests\HutchASKA.Core.Tests.csproj --configuration Release
 ```
 
-Public CI is intended to validate the pure core. Compilation against local ASKA references and in-game smoke tests remain necessary to validate the plugin.
+Public CI validates only the pure core using Node 24 actions and the .NET 8 SDK; .NET 6 is also installed to execute the net6 test assembly. Compilation against local ASKA references and in-game smoke tests remain necessary to validate the plugin.
 
 ## Local ASKA References
 
@@ -136,7 +136,7 @@ Full exceptions belong in the local `ASKA\BepInEx\LogOutput.log`; the UI should 
 
 ## Known Limitations
 
-- This documentation milestone has no working trainer, release ZIP, or in-game verification.
+- The diagnostics shell builds locally but has not passed the in-game smoke matrix; no validated release ZIP exists.
 - Detected game/runtime versions have not established HutchASKA compatibility with the current installed game.
 - Multiplayer/co-op, network manipulation, achievement modification, DRM/access-control bypass, and external memory trainers are outside scope.
 - Exact game hooks require local assembly inspection; research notes alone do not verify every signature.
@@ -160,3 +160,4 @@ HutchASKA-authored source and documentation are licensed under the [MIT License]
 ASKA and its assets belong to their respective rights holders and must be obtained separately. No `Assembly-CSharp.dll`, `SandSailorStudio.dll`, generated interop assemblies, or ASKA assets are redistributed here.
 
 BepInEx, HarmonyX/HarmonyLib, Il2CppInterop, Unity, and other third-party components retain their own licenses and terms. Repository licensing does not replace them. Dependency notices and redistribution terms must be reviewed and recorded in `THIRD_PARTY_NOTICES.md` before the first release; that release document is not yet present. HutchASKA must not include WeMod code or attempt to bypass its restrictions.
+
