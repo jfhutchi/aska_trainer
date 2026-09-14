@@ -20,4 +20,6 @@ Warmth's safe endpoint is unverified, so it can be read but cannot be edited or 
 
 `void SSSGame.Villager.TakeDamage(SSSGame.Combat.DamageData)` is declared on Villager. The proposed narrow interception must check current owned membership and the hosted single-player decision before suppressing that call.
 
+The implemented prefix targets only this declared overload. It receives an opaque object, delegates all casts and current membership checks to the adapter, and defaults to native damage if gating or identification fails. Its own Harmony ID is removed on disable. It never writes maximum health. Actual damage interception and disable behavior require a disposable-save test; no runtime pass is claimed.
+
 `VillagerOutlet` has float `gametimeToSpawnVillager`, a trial-time parameter reference, float `_NetworkedVillagerTimerEnd`, and Fusion NetworkBool `_SpawnPending`. Candidate native methods include `OnStorageMenuConfirmationPressed(ItemContainer)`, `_OnSelectVillagerConfirmed(ConfirmActionMenu)`, bool `_CheckSummonAvailability(ItemContainer)` and `SpawnVillager()`. Generated native-invoke wrappers do not establish timer units, rearm order, or a complete normal recruitment lifecycle. No timer write, constructor, spawn call or recruitment patch is justified from this evidence alone.
