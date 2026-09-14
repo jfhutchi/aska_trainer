@@ -186,3 +186,6 @@ Cloud/Codex workers will not have these proprietary DLLs by default. Therefore:
 
 Current Assembly-CSharp metadata confirms instance `void SSSGame.ItemDurablilityProcess.Run(SandSailorStudio.Inventory.Item item, ref float deltaTime)` (the spelling is native).
 The by-reference parameter is named deltaTime, not durability loss. Generated IL invokes native code; it does not establish whether suppressing this interval also suppresses breakage, junk conversion, or other maintenance. No Harmony patch is installed. Infinite Durability is Incompatible until a narrow loss operation is proven. Damaged-tool freeze/resume remains MANUAL VERIFICATION REQUIRED after such a hook is established.
+# Implementation inspection: freshness (2026-09-14)
+
+Current Assembly-CSharp metadata confirms instance `void SandSailorStudio.Inventory.ExpirationProcess.Run(SandSailorStudio.Inventory.Item item, ref float deltaTime)` and `Begin(Item)`. Despite its namespace, this process is in Assembly-CSharp. The interval is elapsed processing time; native freshness arithmetic and availability/expiration side effects are not visible in the generated invoke wrapper. No Spoilage is Incompatible, with no blanket process skip or freshness reset. Perishable-item freeze/resume needs manual verification after a narrow hook is proven.
