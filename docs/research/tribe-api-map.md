@@ -4,9 +4,11 @@ Inspected local build 25186770 with Mono.Cecil on 2026-09-14. Signatures and a s
 
 ## Membership and identity
 
-`SSSGame.PopulationManager.GetPopulation()` and `GetAllVillagers()` return native lists of `SSSGame.Villager`; `IsLoading` is bool. The adapter uses the registered population, requires one current population manager and settlement, a positively confirmed single-player session, a current local player, matching `Villager.teamId` / `PlayerCharacter.TeamId`, native authority, living state, and matching `Villager.GetSettlement()`. `Villager.IsViking` and a populated `_guestStation` exclude visitors/outsiders conservatively. If ownership is ambiguous the adapter exposes no target. These membership semantics still require a disposable-save check with owned and visiting characters.
+`SSSGame.PopulationManager.GetPopulation()` and `GetAllVillagers()` return native lists of `SSSGame.Villager`; `IsLoading` is bool. The adapter uses the registered population, requires one current population manager and settlement, a positively confirmed single-player session, a current local player, matching `Villager.teamId` / `PlayerCharacter.TeamId`, native authority, living state, and matching `Villager.GetSettlement()`. A populated `_guestStation` excludes guests conservatively. The meaning of `IsViking` is not established, so its name is not used to infer outsider status. If ownership is ambiguous the adapter exposes no target. These membership semantics still require a disposable-save check with owned and visiting characters.
 
 `Villager.GetGuid()` returns string; `PersistentUniqueID` is int. The adapter uses a nonempty GUID and excludes duplicate GUIDs. It never stores a native pointer as identity. All villager casts, list enumeration, snapshots, writes and damage-target discovery stay inside `AskaTribeContext`; no raw villager survives a public adapter call.
+
+Expected loading, missing targets and validation failures return empty/error results without spending the native error budget. A primitive status interface exposes the reason. Unexpected enumeration/callback exceptions also reach the hosted breaker; unexpected native snapshot/edit failures latch the adapter after three errors. A latched adapter performs no further population access until restart. Global maintenance runs at most twice per second per feature and enumerates fresh current IDs, so newly registered members enter the next pass. Restore All Needs excludes health, warmth and lifetime; Heal Entire Tribe is a separate one-shot action.
 
 ## Fields
 

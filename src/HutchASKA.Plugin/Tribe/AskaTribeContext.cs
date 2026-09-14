@@ -12,9 +12,12 @@ using SSSGame.Combat;
 
 namespace HutchASKA.Plugin.Tribe;
 
-internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard guard, Action<Exception> reportError) : ITribeContext
+internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard guard, Action<Exception> reportError) : ITribeContext, ITribeContextStatus
 {
-    private int reportedErrors;
+    private int nativeFailures;
+    private string? nativeFault;
+    public string? LastError { get; private set; }
+    public bool HasNativeFailure { get; private set; }
     internal const string AgeUnavailable = "Age is unavailable: the native attribute measures remaining lifetime; safe age conversion/editing is unverified.";
     internal const string WarmthUnavailable = "Warmth is read-only: a safe native temperature range has not been verified.";
     internal static MethodInfo? DamageTarget() => AccessTools.DeclaredMethod(typeof(Villager), "TakeDamage", new[] { typeof(DamageData) });
@@ -27,8 +30,14 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
 
     public IReadOnlyList<string> GetCurrentVillagerIds()
     {
-        try { return ResolvePopulation().Keys.OrderBy(id => id, StringComparer.Ordinal).ToArray(); }
-        catch (Exception error) { Report(error); return Array.Empty<string>(); }
+        try
+        {
+            var ids = ResolvePopulation().Keys.OrderBy(id => id, StringComparer.Ordinal).ToArray();
+            LastError = null; HasNativeFailure = false;
+            return ids;
+        }
+        catch (TribeUnavailableException error) { Unavailable(error); return Array.Empty<string>(); }
+        catch (Exception error) { Fault(error); throw; }
     }
 
     public bool TrySnapshot(string stableId, out VillagerSnapshot? snapshot, out string? error)
@@ -38,15 +47,16 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         {
             var villager = Resolve(stableId);
             var survival = villager.GetSurvival();
-            if (!survival) throw new InvalidOperationException("Villager survival is unavailable.");
+            if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
             snapshot = new(stableId, villager.GetName() ?? stableId,
                 Fraction(villager._healthVAttr, villager.MaxHealth), Fraction(survival._foodVAttr),
                 Fraction(survival._waterVAttr), Fraction(survival._warmthVAttr), Fraction(survival._energyVAttr),
                 Fraction(survival._restVariableAttribute), Fraction(villager._happinessVAttr, villager.HappinessCap), null);
-            error = null;
+            error = LastError = null; HasNativeFailure = false;
             return true;
         }
-        catch (Exception failure) { error = failure.Message; Report(failure); return false; }
+        catch (TribeUnavailableException failure) { error = failure.Message; Unavailable(failure); return false; }
+        catch (Exception failure) { error = failure.Message; Fault(failure); return false; }
     }
 
     public bool TryApply(string stableId, VillagerEditRequest request, out string? error)
@@ -54,12 +64,12 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         try
         {
             request = request.Clamp();
-            if (request.Age is not null) throw new InvalidOperationException(AgeUnavailable);
-            if (request.WarmthFraction is not null) throw new InvalidOperationException(WarmthUnavailable);
+            if (request.Age is not null) throw new TribeUnavailableException(AgeUnavailable);
+            if (request.WarmthFraction is not null) throw new TribeUnavailableException(WarmthUnavailable);
             var villager = Resolve(stableId);
             if (request.IsEmpty) { error = null; return true; }
             var survival = villager.GetSurvival();
-            if (!survival) throw new InvalidOperationException("Villager survival is unavailable.");
+            if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
             // Validate every requested native range before making the first write.
             var writes = new List<(VariableAttribute Attribute, float Value)>();
             Add(writes, villager._healthVAttr, request.HealthFraction, villager.MaxHealth);
@@ -72,13 +82,15 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             {
                 RequireSession();
                 if (!villager || villager.IsDead || !villager.HasAuthority)
-                    throw new InvalidOperationException("Villager became unavailable during editing; some earlier fields may have applied.");
+                    throw new TribeUnavailableException("Villager became unavailable during editing; some earlier fields may have applied.");
                 write.Attribute.SetValue(write.Value);
             }
-            error = null;
+            error = LastError = null; HasNativeFailure = false;
             return true;
         }
-        catch (Exception failure) { error = failure.Message; Report(failure); return false; }
+        catch (TribeUnavailableException failure) { error = failure.Message; Unavailable(failure); return false; }
+        catch (ArgumentOutOfRangeException failure) { error = failure.Message; Unavailable(failure); return false; }
+        catch (Exception failure) { error = failure.Message; Fault(failure); return false; }
     }
 
     public bool TryHeal(string stableId, out string? error) => TryApply(stableId, new(HealthFraction: 1), out error);
@@ -92,28 +104,30 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             var id = villager!.GetGuid();
             return !string.IsNullOrWhiteSpace(id) && ResolvePopulation().TryGetValue(id, out var current) && current == villager;
         }
-        catch (Exception error) { Report(error); return false; }
+        catch (TribeUnavailableException error) { Unavailable(error); return false; }
+        catch (Exception error) { Fault(error); throw; }
     }
 
     private Villager Resolve(string id) => ResolvePopulation().TryGetValue(id, out var villager)
-        ? villager : throw new InvalidOperationException("Villager is no longer a live, owned member of the current tribe. Refresh the list.");
+        ? villager : throw new TribeUnavailableException("Villager is no longer a live, owned member of the current tribe. Refresh the list.");
 
     private Dictionary<string, Villager> ResolvePopulation()
     {
         RequireSession();
-        if (!players.TryGetLocalPlayer(out var player)) throw new InvalidOperationException("Local player is unavailable.");
+        if (nativeFault is not null) throw new InvalidOperationException(nativeFault);
+        if (!players.TryGetLocalPlayer(out var player)) throw new TribeUnavailableException("Local player is unavailable.");
         var population = GameObjectResolver.FindUnique<PopulationManager>();
         var settlement = GameObjectResolver.FindUnique<Settlement>();
         if (!population || population!.IsLoading || !settlement)
-            throw new InvalidOperationException("Current population or settlement is unavailable or ambiguous.");
+            throw new TribeUnavailableException("Current population or settlement is unavailable or ambiguous.");
         var result = new Dictionary<string, Villager>(StringComparer.Ordinal);
         var ambiguous = new HashSet<string>(StringComparer.Ordinal);
         var registered = population.GetPopulation();
-        if (registered is null) throw new InvalidOperationException("Registered population is unavailable.");
+        if (registered is null) throw new TribeUnavailableException("Registered population is unavailable.");
         foreach (var villager in registered)
         {
             if (!villager || villager.IsDead || !villager.HasAuthority || villager.teamId != player!.TeamId
-                || villager.IsViking || villager._guestStation || villager.GetSettlement() != settlement) continue;
+                || villager._guestStation || villager.GetSettlement() != settlement) continue;
             var id = villager.GetGuid();
             if (string.IsNullOrWhiteSpace(id) || ambiguous.Contains(id)) continue;
             if (!result.TryAdd(id, villager)) { result.Remove(id); ambiguous.Add(id); }
@@ -124,7 +138,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
     private void RequireSession()
     {
         var decision = guard.Refresh();
-        if (!decision.Allowed) throw new InvalidOperationException(decision.Reason);
+        if (!decision.Allowed) throw new TribeUnavailableException(decision.Reason ?? "Single-player state is unavailable.");
     }
 
     private static (float Min, float Max) Range(VariableAttribute? attribute, float? cap)
@@ -147,7 +161,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         var (min, max) = Range(attribute, cap);
         var value = attribute.GetValue();
         if (!float.IsFinite(value)) throw new InvalidOperationException("Native attribute value is not finite.");
-        return Math.Clamp((value - min) / (max - min), 0, 1);
+        return (float)Math.Clamp(((double)value - min) / ((double)max - min), 0, 1);
     }
 
     private static void Add(List<(VariableAttribute, float)> writes, VariableAttribute attribute, float? fraction, float? cap = null)
@@ -157,9 +171,23 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         writes.Add((attribute, AttributeMath.ValueAtFraction(min, max, fraction.Value)));
     }
 
-    private void Report(Exception error)
+    private void Unavailable(Exception error)
     {
-        // This adapter is the native exception boundary; cap duplicate logs during scene transitions.
-        if (reportedErrors++ < 3) reportError(error);
+        LastError = error.Message;
+        HasNativeFailure = false;
     }
+
+    private void Fault(Exception error)
+    {
+        HasNativeFailure = true;
+        if (nativeFault is null)
+        {
+            nativeFailures++;
+            reportError(error);
+            if (nativeFailures >= 3) nativeFault = "Tribe adapter stopped after native errors; restart ASKA after correcting the error.";
+        }
+        LastError = nativeFault ?? error.Message;
+    }
+
+    private sealed class TribeUnavailableException(string message) : Exception(message);
 }
