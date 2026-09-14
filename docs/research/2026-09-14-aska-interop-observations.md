@@ -182,3 +182,7 @@ Cloud/Codex workers will not have these proprietary DLLs by default. Therefore:
 4. Mark a game-specific hook as requiring local verification when the exact signature is not present in this document.
 5. The local plugin build is authoritative for strongly typed ASKA references.
 6. Do not commit ASKA or BepInEx-generated interop binaries.
+# Implementation inspection: durability (2026-09-14)
+
+Current Assembly-CSharp metadata confirms instance `void SSSGame.ItemDurablilityProcess.Run(SandSailorStudio.Inventory.Item item, ref float deltaTime)` (the spelling is native).
+The by-reference parameter is named deltaTime, not durability loss. Generated IL invokes native code; it does not establish whether suppressing this interval also suppresses breakage, junk conversion, or other maintenance. No Harmony patch is installed. Infinite Durability is Incompatible until a narrow loss operation is proven. Damaged-tool freeze/resume remains MANUAL VERIFICATION REQUIRED after such a hook is established.
