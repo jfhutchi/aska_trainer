@@ -48,13 +48,19 @@ internal sealed class MovementSpeedFeature(IPlayerContext players) : NativeFeatu
     {
         if (ownedModifier is null) return;
         var modifier = ownedModifier;
-        ownedModifier = null;
         if (!players.TryGetLocalPlayer(out var player) || player!.GetInstanceID() != playerIdentity)
+        {
+            ownedModifier = null;
             throw new InvalidOperationException("Movement target unloaded; its modifier cannot be safely restored through a stale wrapper.");
+        }
         var attribute = player.GetCharacterMovement()?._moveMultiAttr;
         if (attribute is null || attribute.Pointer != attributeIdentity)
+        {
+            ownedModifier = null;
             throw new InvalidOperationException("Movement attribute replaced; old native target is no longer safe to access.");
+        }
         attribute.RemoveModifier(modifier);
+        ownedModifier = null;
     }
     public override void Disable() { Restore(); base.Disable(); }
     public override void Reset() { Disable(); Multiplier.Reset(); }

@@ -6,6 +6,8 @@ using HutchASKA.Plugin.UI;
 using HutchASKA.Plugin.Game;
 using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
+using HutchASKA.Plugin.Configuration;
+using HutchASKA.Plugin.Input;
 using UnityEngine;
 
 namespace HutchASKA.Plugin;
@@ -21,10 +23,7 @@ public sealed class Plugin : BasePlugin
 
     public override void Load()
     {
-        var menuKey = Config.Bind("Controls", "MenuHotkey", KeyCode.F8, "Show or hide the trainer window.");
-        var restoreStates = Config.Bind("General", "RestoreEnabledStatesOnLaunch", false,
-            "Opt in to restoring enabled features. Stage 1 has no gameplay features to restore.");
-        var guard = new SinglePlayerGuard();
+        var guard = new SinglePlayerGuard(error => Log.LogError($"Session discovery: {error}"));
         var host = new FeatureHost(guard, Log);
         var god = new GodModeFeature(Players);
         god.Hosted = host.Register(god);
@@ -39,13 +38,16 @@ public sealed class Plugin : BasePlugin
         host.Register(new TimeStepFeature());
         var gameSpeed = new GameSpeedFeature();
         host.Register(gameSpeed);
+        var menuInput = host.Register(new MenuInputFeature());
+        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed);
+        var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion);
-        var window = new TrainerWindow(host, guard, versions, restoreStates);
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed);
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
-        AddComponent<TrainerBehaviour>().Initialize(host, window, menuKey);
+        AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
         Log.LogInfo($"{PluginName} {PluginVersion}; ASKA {versions.Game}; Unity {versions.Unity}; BepInEx {versions.BepInEx}");
         Log.LogInfo($"Session: {guard.Mode}; {guard.Decision.Reason}. Gameplay features default off.");
     }

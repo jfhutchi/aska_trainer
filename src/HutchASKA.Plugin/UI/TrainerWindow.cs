@@ -2,14 +2,21 @@ using BepInEx.Configuration;
 using HutchASKA.Plugin.Infrastructure;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
+using HutchASKA.Plugin.Configuration;
+using HutchASKA.Plugin.Player;
+using HutchASKA.Plugin.World;
+using HutchASKA.Plugin.UI.Tabs;
 
 namespace HutchASKA.Plugin.UI;
 
-public sealed class TrainerWindow
+internal sealed class TrainerWindow
 {
     private readonly SinglePlayerGuard guard;
     private readonly DiagnosticsPanel diagnostics;
     private readonly ConfigEntry<bool> restoreStates;
+    private readonly RuntimeConfiguration config;
+    private readonly PlayerTab playerTab;
+    private readonly WorldTab worldTab;
     private readonly GUI.WindowFunction drawContents;
     private readonly Il2CppStringArray tabs = new(new[]
         { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" });
@@ -18,10 +25,15 @@ public sealed class TrainerWindow
     private int selectedTab;
     private bool open;
 
-    public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, ConfigEntry<bool> restoreStates)
+    public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
+        MovementSpeedFeature movement, GameSpeedFeature speed)
     {
         this.guard = guard;
-        this.restoreStates = restoreStates;
+        this.config = config;
+        restoreStates = config.RestoreStates;
+        var controls = new FeatureControls(host, guard, config);
+        playerTab = new PlayerTab(controls, movement, config);
+        worldTab = new WorldTab(controls, speed, config);
         diagnostics = new DiagnosticsPanel(host, guard, versions);
         drawContents = (Action<int>)DrawContents;
     }
@@ -48,13 +60,17 @@ public sealed class TrainerWindow
             try
             {
                 if (selectedTab == 6) diagnostics.Draw();
+                else if (selectedTab == 0) playerTab.Draw();
+                else if (selectedTab == 3) worldTab.Draw();
                 else if (selectedTab == 5)
                 {
-                    GUILayout.Label($"Restore enabled states on launch: {restoreStates.Value}");
+                    restoreStates.Value = GUILayout.Toggle(restoreStates.Value, "Restore enabled states on next launch (opt in)");
                     GUILayout.Label("Configuration is stored in BepInEx/config/com.jfhutchi.hutchaska.cfg.");
-                    GUILayout.Label("Stage 1 provides the trainer shell. Gameplay controls arrive in later stages.");
+                    if (GUILayout.Button("Reset All / Restore Native Values")) config.ResetAll();
+                    GUILayout.Label("F1 God Mode | F2 Stamina | F5 Freeze Time | F8 Menu. Keys are configurable.");
+                    GUILayout.Label("Duplicate gameplay hotkeys are ignored; the menu key takes priority.");
                 }
-                else GUILayout.Label("No gameplay features registered yet. All gameplay changes are off.");
+                else GUILayout.Label("This module is planned for a later stage.");
             }
             finally { GUILayout.EndScrollView(); }
             if (GUILayout.Button("Close")) open = false;

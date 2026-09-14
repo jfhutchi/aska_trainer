@@ -35,12 +35,15 @@ internal sealed class WorldTimeFeature(IWorldContext world) : NativeFeature("wor
     public override void Disable()
     {
         var identity = weatherIdentity;
-        weatherIdentity = null;
         if (identity.HasValue)
         {
             if (!world.TryGetWeatherSystem(out var weather) || weather!.GetInstanceID() != identity)
+            {
+                weatherIdentity = null;
                 throw new InvalidOperationException("Frozen world unloaded; stale world state cannot safely be restored.");
+            }
             weather.TimeRunningEnabled = previousRunning;
+            weatherIdentity = null;
         }
         base.Disable();
     }

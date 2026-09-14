@@ -76,6 +76,23 @@ public sealed class HostedFeatureTests
     private static HostedFeature Host(FakeFeature feature, List<Exception> errors) =>
         new(feature, () => SinglePlayerDecision.Evaluate(SessionMode.SinglePlayer), (_, error) => errors.Add(error));
 
+    [Fact]
+    public void ExplicitResetRetriesFailedNativeCleanupWithoutTickRetry()
+    {
+        var feature = new FakeFeature { DisableError = new InvalidOperationException("restore") };
+        var hosted = Host(feature, new());
+        Assert.True(hosted.TryEnable());
+        hosted.Disable();
+        hosted.Tick();
+        Assert.Equal(1, feature.DisableCount);
+        feature.DisableError = null;
+        hosted.Reset();
+        Assert.Equal(2, feature.DisableCount);
+        hosted.Disable();
+        Assert.Equal(2, feature.DisableCount);
+        Assert.Equal(FeatureState.Faulted, hosted.State);
+    }
+
     private sealed class FakeFeature : ITrainerFeature
     {
         public string Id => "test";
@@ -84,7 +101,7 @@ public sealed class HostedFeatureTests
         public string? StatusReason => null;
         public Exception? ProbeError { get; init; }
         public Exception? TickError { get; init; }
-        public Exception? DisableError { get; init; }
+        public Exception? DisableError { get; set; }
         public int TickCount { get; private set; }
         public int DisableCount { get; private set; }
         public CompatibilityResult ProbeCompatibility() => ProbeError is { } error ? throw error : CompatibilityResult.Compatible();

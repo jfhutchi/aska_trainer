@@ -12,6 +12,7 @@ public sealed class HostedFeature : ITrainerFeature
     private readonly FeatureExecutionGuard execution;
     private CompatibilityResult? compatibility;
     private bool active;
+    private bool cleanupPending;
 
     public HostedFeature(ITrainerFeature feature, Func<SinglePlayerDecision> decision, Action<string, Exception> reportError)
     {
@@ -94,8 +95,9 @@ public sealed class HostedFeature : ITrainerFeature
     private void Stop(FeatureState state, string? reason)
     {
         SetState(state, reason);
-        if (!active) return;
+        if (!active && !cleanupPending) return;
         active = false;
+        cleanupPending = true;
         // Cleanup must run even after the runtime breaker opens, once per activation.
         var cleanupBreaker = new FeatureCircuitBreaker(1);
         if (!new FeatureExecutionGuard(cleanupBreaker).TryRun(feature.Disable))
@@ -104,6 +106,7 @@ public sealed class HostedFeature : ITrainerFeature
             SetState(FeatureState.Faulted, $"Restore native state: {error.Message}");
             reportError($"{Id}: restore native state", error);
         }
+        else cleanupPending = false;
     }
 
     private bool Run(string operation, Action action)

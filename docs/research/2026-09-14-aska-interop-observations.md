@@ -2,6 +2,25 @@
 
 ## Stage 2 context validation (2026-09-14)
 
+### Trainer input and lifecycle validation
+
+`SSSGame.InputManager` has `AddContext(SSSGame.InputContext.Context)` and
+`RemoveContext(Context)`. Context derives from ScriptableObject and exposes
+`inputMaps` (Il2CppStructArray<InputManager.InputMaps>), `priority`, `additive`,
+`dontChangeCamera`, and `keepCameraFov`. The trainer owns a newly created context
+with empty input maps, maximum priority, additive=false, and camera preservation.
+Only that context is added/removed; native/shared contexts are never edited.
+Context priority behavior, suppression coverage, cursor behavior, and native menu
+interaction require manual verification. F8 uses Unity legacy keyboard polling,
+independently of ASKA InputSystem maps.
+
+Session-discovery exceptions are logged and latched after three failures so an
+incompatible API cannot cause an every-frame exception loop. Native cleanup handles
+are retained on restoration errors and can be retried by explicit Reset All; stale
+world/player identities are discarded with a visible terminal diagnostic.
+Game speed honors native zero-scale pauses, adopts a changed positive baseline after
+native resume, and restores only a scale it still owns; pure controller tests cover this.
+
 ### Damage, session, and stamina signatures
 
 ### Survival semantics

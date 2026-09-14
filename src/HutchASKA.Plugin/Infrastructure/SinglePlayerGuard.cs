@@ -6,11 +6,15 @@ namespace HutchASKA.Plugin.Infrastructure;
 
 public sealed class SinglePlayerGuard
 {
+    private int failures;
+    private readonly Action<Exception>? reportError;
+    public SinglePlayerGuard(Action<Exception>? reportError = null) => this.reportError = reportError;
     public SessionMode Mode { get; private set; }
     public SinglePlayerDecision Decision { get; private set; } = SinglePlayerDecision.Evaluate(SessionMode.Unknown);
 
     public SinglePlayerDecision Refresh()
     {
+        if (failures >= 3) return Decision;
         try
         {
             Mode = ReadMode();
@@ -20,7 +24,10 @@ public sealed class SinglePlayerGuard
         {
             // Session discovery is a fail-closed boundary, including stale interop objects.
             Mode = SessionMode.Unknown;
-            Decision = new(false, $"Single-player state not confirmed: {error.Message}");
+            failures++;
+            reportError?.Invoke(error);
+            Decision = new(false, $"Single-player state not confirmed: {error.Message}" +
+                (failures >= 3 ? " (discovery stopped; restart ASKA after correcting the error)" : ""));
         }
         return Decision;
     }
