@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved design for implementation planning.
+Design approved in chat; written specification pending user review before implementation planning.
 
 Target repository: `jfhutchi/aska_trainer`
 
@@ -118,11 +118,15 @@ The Diagnostics tab exposes these states.
 
 v1 must be explicitly local/single-player only.
 
-At startup and before enabling gameplay-changing hooks, `SinglePlayerGuard` will inspect whatever current ASKA session information is available through the game API. If the plugin can positively determine that the session is networked/co-op, gameplay cheats remain disabled.
+At startup and before enabling gameplay-changing hooks, `SinglePlayerGuard` will inspect current ASKA session information through the game API.
 
-If ASKA's session API cannot reliably determine the state on the target build, the plugin will default to a conservative local-only gate rather than pretending multiplayer is supported.
+The allowed states are explicit:
 
-The UI must show why a feature is unavailable when the guard blocks it.
+- Confirmed local/single-player session: gameplay cheats may be enabled.
+- Confirmed networked/co-op session: gameplay cheats are blocked.
+- Session state cannot be determined reliably: gameplay cheats are blocked and the UI reports `Single-player state not confirmed`.
+
+An unknown state must never be treated as permission to run multiplayer-affecting cheats.
 
 ## 6. UI and input
 
@@ -220,7 +224,7 @@ Behavior:
 
 - Stop future durability loss while enabled.
 - Do not automatically repair already damaged items merely by enabling the toggle.
-- A separate repair-current-item action may be added if the API supports it cleanly.
+- A separate repair-current-item action may be added later if the API supports it cleanly; it is not required for v1 acceptance.
 
 Current interop exposes durability-processing behavior suitable for interception.
 
@@ -283,9 +287,9 @@ Behavior:
 
 ### 9.4 Blueprint requirements
 
-If current API validation confirms a safe hook, an advanced toggle may ignore blueprint requirement checks. This toggle must remain separate from ordinary free crafting/building.
+Blueprint-requirement bypass is an optional advanced feature, not a v1 acceptance requirement.
 
-If the hook is not stable on the target build, the feature is omitted rather than implemented through unsafe broad patches.
+If current API validation confirms a safe, narrowly scoped hook, the Advanced tab may expose a separate toggle to ignore blueprint requirement checks. If the hook is not stable on the target build, the feature is omitted rather than implemented through an unsafe broad patch.
 
 ## 10. World and time controls
 
@@ -301,11 +305,12 @@ Behavior:
 
 ### 10.2 Time adjustment
 
-Controls:
+Required controls:
 
 - -1 hour
 - +1 hour
-- Optional direct time-of-day field if native API semantics are confirmed
+
+A direct time-of-day field may be added only if native API semantics are confirmed; it is not required for v1 acceptance.
 
 Use ASKA's native world-time setter rather than manually editing unrelated clocks.
 
@@ -383,7 +388,7 @@ The editor must not retain unsafe object references across villager unload/despa
 
 There will be no generic `Spawn Villager` button in v1.
 
-Instead, HutchASKA will alter ASKA's normal villager recruitment/spawner wait so that the existing recruitment process completes immediately or at the minimum safe duration.
+Instead, HutchASKA will alter ASKA's normal villager recruitment/spawner wait so that the existing recruitment process completes immediately or at the minimum safe duration accepted by the game.
 
 This preserves ASKA's own lifecycle for:
 
@@ -396,7 +401,7 @@ This preserves ASKA's own lifecycle for:
 
 The implementation must target only the recruitment/spawner timer. It must not globally accelerate unrelated tribe timers.
 
-If multiple recruitment mechanisms exist, the plugin will identify and patch the normal player-facing recruitment path first. Unsupported recruitment paths will remain native.
+If multiple recruitment mechanisms exist, v1 targets the normal player-facing recruitment path. Other recruitment paths remain native unless they are proven to use the same safe hook.
 
 ## 12. Advanced tab
 
@@ -510,7 +515,7 @@ The solution will build the plugin DLL from source while resolving ASKA/BepInEx 
 
 The build must fail with a clear message when required local references are missing.
 
-The design should support a future helper script that copies required references from the user's ASKA installation without committing them.
+The design supports a future helper script that copies required references from the user's ASKA installation without committing them. That helper is not required for the first implementation milestone unless needed to make local builds reproducible.
 
 ## 19. Testing strategy
 
@@ -583,7 +588,7 @@ BepInEx 6.0.0-be.755
 v1 is complete when:
 
 1. The plugin loads reliably under the target ASKA/BepInEx build.
-2. It enforces its single-player/local-only scope.
+2. It enforces its single-player/local-only scope, including blocking cheats when session state cannot be confirmed.
 3. F8 opens a tabbed trainer UI and hotkeys work.
 4. Player God Mode, stamina, hunger, thirst, temperature, and movement controls work independently.
 5. Durability, freshness, item-retention, and item-browser functionality work without save/inventory corruption in smoke testing.
