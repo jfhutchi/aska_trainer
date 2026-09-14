@@ -4,6 +4,15 @@
 
 ### Damage, session, and stamina signatures
 
+### Survival semantics
+
+Current interop confirms `GetPlayerSurvival()` returns `SSSGame.PlayerSurvival`,
+whose CharacterSurvival base exposes `_foodVAttr`, `_waterVAttr`, `_warmthVAttr` as
+VariableAttribute. `min` and `max` are float properties and `SetValue(float)` returns
+void. Hunger/thirst fill only their own attribute to its validated native maximum.
+There is no comfortable/cold/hot runtime observation yet; the generated wrapper
+does not establish a safe warmth target. Temperature Immunity is Incompatible.
+
 `PlayerCharacter.TakeDamage(SSSGame.Combat.DamageData)` returns void. The God Mode
 prefix uses only this player-specific overload and compares native Unity identity to
 the newly resolved local player. Session gating requires exactly one NetworkSession,
