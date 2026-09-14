@@ -8,6 +8,8 @@ using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
 using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Input;
+using HutchASKA.Plugin.Items;
+using HutchASKA.Plugin.Crafting;
 using UnityEngine;
 
 namespace HutchASKA.Plugin;
@@ -39,13 +41,23 @@ public sealed class Plugin : BasePlugin
         var gameSpeed = new GameSpeedFeature();
         host.Register(gameSpeed);
         var menuInput = host.Register(new MenuInputFeature());
+        host.Register(new InfiniteDurabilityFeature());
+        host.Register(new NoSpoilageFeature());
+        host.Register(new RetainItemsOnUseFeature());
+        var catalog = new AskaItemCatalog();
+        catalog.Hosted = host.Register(catalog);
+        var give = new GiveItemFeature(new InventoryService(Players, guard));
+        give.Hosted = host.Register(give);
+        host.Register(new FreeCraftingFeature());
+        host.Register(new FreeBuildingFeature());
+        host.Register(new FreeRepairsFeature());
         var config = new RuntimeConfiguration(Config, host, movement, gameSpeed);
         var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed);
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, catalog, give);
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
         Log.LogInfo($"{PluginName} {PluginVersion}; ASKA {versions.Game}; Unity {versions.Unity}; BepInEx {versions.BepInEx}");

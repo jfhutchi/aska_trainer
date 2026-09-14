@@ -43,6 +43,7 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
         hotkeys?.Tick();
         if (visible && menuInput is not null) FeatureInputActions.EnsureEnabled(menuInput);
         host?.Tick();
+        window?.UpdateContext();
     }
 
     public void LateUpdate()

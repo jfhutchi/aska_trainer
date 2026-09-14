@@ -6,6 +6,7 @@ using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
 using HutchASKA.Plugin.UI.Tabs;
+using HutchASKA.Plugin.Items;
 
 namespace HutchASKA.Plugin.UI;
 
@@ -17,6 +18,8 @@ internal sealed class TrainerWindow
     private readonly RuntimeConfiguration config;
     private readonly PlayerTab playerTab;
     private readonly WorldTab worldTab;
+    private readonly ItemsTab itemsTab;
+    private readonly CraftingTab craftingTab;
     private readonly GUI.WindowFunction drawContents;
     private readonly Il2CppStringArray tabs = new(new[]
         { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" });
@@ -26,7 +29,7 @@ internal sealed class TrainerWindow
     private bool open;
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
-        MovementSpeedFeature movement, GameSpeedFeature speed)
+        MovementSpeedFeature movement, GameSpeedFeature speed, AskaItemCatalog catalog, GiveItemFeature give)
     {
         this.guard = guard;
         this.config = config;
@@ -34,6 +37,8 @@ internal sealed class TrainerWindow
         var controls = new FeatureControls(host, guard, config);
         playerTab = new PlayerTab(controls, movement, config);
         worldTab = new WorldTab(controls, speed, config);
+        itemsTab = new ItemsTab(controls, guard, catalog, give);
+        craftingTab = new CraftingTab(controls);
         diagnostics = new DiagnosticsPanel(host, guard, versions);
         drawContents = (Action<int>)DrawContents;
     }
@@ -49,6 +54,11 @@ internal sealed class TrainerWindow
         return open;
     }
 
+    public void UpdateContext()
+    {
+        if (!guard.Decision.Allowed) itemsTab.Clear();
+    }
+
     private void DrawContents(int id)
     {
         GUILayout.BeginVertical();
@@ -61,6 +71,8 @@ internal sealed class TrainerWindow
             {
                 if (selectedTab == 6) diagnostics.Draw();
                 else if (selectedTab == 0) playerTab.Draw();
+                else if (selectedTab == 1) itemsTab.Draw();
+                else if (selectedTab == 2) craftingTab.Draw();
                 else if (selectedTab == 3) worldTab.Draw();
                 else if (selectedTab == 5)
                 {
