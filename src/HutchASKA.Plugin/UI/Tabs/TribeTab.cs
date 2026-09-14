@@ -20,6 +20,7 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
     {
         foreach (var id in new[] { "tribe.god", "tribe.food", "tribe.water", "tribe.temperature", "tribe.energy", "tribe.rest", "tribe.happiness", "tribe.aging" })
             controls.Toggle(id);
+        controls.Toggle("tribe.recruitment");
         var previous = GUI.enabled;
         GUI.enabled = previous && controls.CanChange(controls.Get("tribe.heal"));
         if (GUILayout.Button("Heal Entire Tribe"))

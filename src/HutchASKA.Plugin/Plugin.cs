@@ -63,6 +63,7 @@ public sealed class Plugin : BasePlugin
         host.Register(new TribeNeedsFeature(tribe, "tribe.happiness", "Max Happiness (Tribe)", new(HappinessFraction: 1)));
         host.Register(new TribeUnavailableFeature("tribe.temperature", "Temperature Immunity (Tribe)", AskaTribeContext.WarmthUnavailable));
         host.Register(new TribeUnavailableFeature("tribe.aging", "Freeze Aging", AskaTribeContext.AgeUnavailable));
+        host.Register(new InstantRecruitmentFeature());
         var healTribe = new TribeRestoreFeature(tribe, true);
         healTribe.Hosted = host.Register(healTribe);
         var restoreTribe = new TribeRestoreFeature(tribe, false);
