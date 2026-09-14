@@ -28,19 +28,21 @@ internal sealed class ItemsTab(FeatureControls controls, SinglePlayerGuard guard
         GUI.enabled = enabled;
         GUILayout.Label("Search display or internal name");
         var nextQuery = GUILayout.TextField(query);
-        if (nextQuery != query) { query = nextQuery; page = 0; }
+        if (nextQuery != query) { query = nextQuery; page = 0; selectedId = null; }
         var matches = ItemCatalogSearch.Filter(entries, query);
         page = Math.Clamp(page, 0, Math.Max(0, (matches.Count - 1) / 20));
         GUILayout.Label($"{matches.Count} items | Page {page + 1}");
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Previous")) page = Math.Max(0, page - 1);
-        if (GUILayout.Button("Next")) page = Math.Min(Math.Max(0, (matches.Count - 1) / 20), page + 1);
+        if (GUILayout.Button("Previous")) { page = Math.Max(0, page - 1); selectedId = null; }
+        if (GUILayout.Button("Next")) { page = Math.Min(Math.Max(0, (matches.Count - 1) / 20), page + 1); selectedId = null; }
         GUILayout.EndHorizontal();
         foreach (var entry in matches.Skip(page * 20).Take(20))
             if (GUILayout.Toggle(selectedId == entry.Id, $"{entry.DisplayName} [{entry.Id}]")) selectedId = entry.Id;
+        var selected = entries.FirstOrDefault(entry => entry.Id == selectedId);
+        GUILayout.Label(selected is null ? "Select an item to give." : $"Selected: {selected.DisplayName} [{selected.Id}]");
         GUILayout.Label($"Quantity (1-{InventoryService.MaximumQuantity})");
         quantity = GUILayout.TextField(quantity, 4);
-        GUI.enabled = enabled && selectedId is not null && controls.CanChange(controls.Get("items.give"));
+        GUI.enabled = enabled && selected is not null && controls.CanChange(controls.Get("items.give"));
         if (GUILayout.Button("Give Item"))
         {
             if (!int.TryParse(quantity, out var count)) message = "Enter a whole-number quantity.";
