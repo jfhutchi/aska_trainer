@@ -6,7 +6,7 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Early development toward version `0.1.0`. Stage 2 Player/World implementation is present, with 38 passing core tests and a successful local plugin build. The Stage 1 bootstrap was observed loading in ASKA; Stage 2 gameplay acceptance is **MANUAL VERIFICATION REQUIRED**. See the [Stage 2 smoke matrix](docs/testing/stage-2-smoke-test.md) and [loader evidence](docs/testing/local-loader-check.md). All cheats start off on first installation; automatic restoration of enabled states defaults to off.
+Early development toward version `0.1.0`. Player/World and runtime item browser/give implementations are present, with 46 passing core tests and a successful local plugin build. Player/World startup was observed in ASKA; gameplay acceptance is **MANUAL VERIFICATION REQUIRED**. See the [Stage 2 smoke matrix](docs/testing/stage-2-smoke-test.md), [Stage 3 matrix](docs/testing/stage-3-smoke-test.md) and [loader evidence](docs/testing/local-loader-check.md). All cheats start off on first installation; automatic restoration of enabled states defaults to off.
 
 Source projects and local build/install helpers are available. No validated release archive has been published. An in-game smoke test is required before a release can claim runtime compatibility.
 
@@ -31,8 +31,8 @@ Player/World controls are implemented against the current local interop signatur
 | Area | Controls and implementation status |
 | --- | --- |
 | Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, movement 1.0x-5.0x. Temperature Immunity: Incompatible, safe warmth range unverified |
-| Items | Planned: prevent future durability/freshness loss, retain quantity on use, Item Browser |
-| Crafting & Building | Planned: free crafting, construction, and repairs through native completion flows |
+| Items | Implemented: runtime catalog/search and native Give Item/Give Stack; save persistence pending. Durability, freshness and retention: Incompatible, isolated native loss/consumption unverified |
+| Crafting & Building | Free crafting, construction and repairs: Incompatible, narrow native transactions unverified |
 | World | Implemented: Freeze Time and separate game-speed presets 0.5x/1x/2x/5x. -1/+1 hour: Incompatible, SetGameTime units/day boundaries unverified |
 | Tribe | Planned: invincibility, needs/aging controls, heal tribe and restore needs |
 | Villagers | Planned: individual editing and accelerated native recruitment |

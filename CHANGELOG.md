@@ -6,6 +6,10 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ### Added
 
+- Runtime item catalog, pure search, paginated Items UI and guarded native definition-based Give Item/Give Stack with capacity and actual-quantity checks.
+- Separate disabled durability, freshness, retention, crafting, building and repair controls with precise compatibility reasons and native API research.
+- Stage 2 input transition/partial-context recovery fixes and regressions; 46 core tests pass at Stage 3.
+
 - Stage 2 local player/world adapters with fresh, fail-closed single-player decisions before actions and Harmony callbacks.
 - Player God Mode and three local stamina-drain hooks; independent food/water maintenance using native maxima.
 - Reversible movement modifier, world-time freeze, and global speed presets with native pause/baseline handling.
