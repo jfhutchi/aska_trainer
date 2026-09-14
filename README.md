@@ -87,6 +87,14 @@ The pure core is testable without an ASKA installation:
 dotnet test tests\HutchASKA.Core.Tests\HutchASKA.Core.Tests.csproj --configuration Release
 ```
 
+Create a local development candidate with PowerShell 7 after completing the dependency notices:
+
+```powershell
+.\scripts\Package-Release.ps1
+```
+
+Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.0.zip`. Both authored DLLs are required. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+
 Public CI validates only the pure core using Node 24 actions and the .NET 8 SDK; .NET 6 is also installed to execute the net6 test assembly. Compilation against local ASKA references and in-game smoke tests remain necessary to validate the plugin.
 
 ## Local ASKA References

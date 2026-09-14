@@ -1,4 +1,4 @@
-param([string]$AskaGameDir = $env:ASKA_GAME_DIR)
+param([string]$AskaGameDir = $env:ASKA_GAME_DIR, [switch]$NoDebugSymbols)
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($AskaGameDir)) {
     $steam = (Get-ItemProperty -LiteralPath 'HKCU:\Software\Valve\Steam' -ErrorAction SilentlyContinue).SteamPath
@@ -23,5 +23,7 @@ foreach ($relative in @('ASKA.exe', 'BepInEx\core', 'BepInEx\interop\Assembly-CS
     if (-not (Test-Path -LiteralPath $required)) { throw "Required ASKA/BepInEx path not found: $required" }
 }
 $env:ASKA_GAME_DIR = $resolved
-dotnet build (Join-Path $PSScriptRoot '..\src\HutchASKA.Plugin\HutchASKA.Plugin.csproj') -c Release
+$buildOptions = @()
+if ($NoDebugSymbols) { $buildOptions = @('-p:DebugType=None', '-p:DebugSymbols=false') }
+dotnet build (Join-Path $PSScriptRoot '..\src\HutchASKA.Plugin\HutchASKA.Plugin.csproj') -c Release @buildOptions
 if ($LASTEXITCODE -ne 0) { throw "Plugin build failed with exit code $LASTEXITCODE" }
