@@ -2,6 +2,24 @@
 
 ## Stage 2 context validation (2026-09-14)
 
+### Damage, session, and stamina signatures
+
+`PlayerCharacter.TakeDamage(SSSGame.Combat.DamageData)` returns void. The God Mode
+prefix uses only this player-specific overload and compares native Unity identity to
+the newly resolved local player. Session gating requires exactly one NetworkSession,
+`Parameters.role == NetworkSession.Role.Singleplayer`, valid `runner`, `IsRunning`,
+`IsSinglePlayer`, and neither connecting nor disconnecting. Host, Client, AutoHostClient,
+and Server roles are blocked explicitly. Every callback and tick refreshes this decision.
+
+The correct movement namespace is `SSSGame.Controllers.CharacterMovement`.
+Both `Character.DrainStamina(float, SSSGame.DrainStaminaUsage)` and
+`CharacterMovement.DrainStamina(float, SSSGame.DrainStaminaUsage)` return void;
+`CharacterMovement.TryDrainStamina(float, bool)` returns bool. Generated wrapper IL
+cannot prove the native call graph; all three entry points are covered independently,
+with the movement instance compared to the local player's `GetCharacterMovement()`.
+TryDrainStamina reports success when suppression applies. Native sprint/disable
+behavior remains MANUAL VERIFICATION REQUIRED; no runtime acceptance is claimed.
+
 Mono.Cecil inspection confirms `SSSGame.PlayerManager.LocalPlayer` returns its nested
 `Player` object with a `playerCharacter` property typed `SSSGame.PlayerCharacter`.
 The resolver requires exactly one current PlayerManager and does not cache wrappers.

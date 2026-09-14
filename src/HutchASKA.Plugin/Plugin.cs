@@ -27,6 +27,8 @@ public sealed class Plugin : BasePlugin
         var host = new FeatureHost(guard, Log);
         var god = new GodModeFeature(Players);
         god.Hosted = host.Register(god);
+        var stamina = new InfiniteStaminaFeature(Players);
+        stamina.Hosted = host.Register(stamina);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
