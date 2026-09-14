@@ -3,6 +3,7 @@ using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.UI;
+using HutchASKA.Plugin.Game;
 using UnityEngine;
 
 namespace HutchASKA.Plugin;
@@ -10,6 +11,8 @@ namespace HutchASKA.Plugin;
 [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
 public sealed class Plugin : BasePlugin
 {
+    internal IPlayerContext Players { get; } = new AskaPlayerContext();
+    internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
     public const string PluginVersion = "0.1.0";

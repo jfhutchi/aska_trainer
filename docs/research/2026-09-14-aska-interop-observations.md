@@ -1,5 +1,15 @@
 # ASKA Interop Observations — 2026-09-14
 
+## Stage 2 context validation (2026-09-14)
+
+Mono.Cecil inspection confirms `SSSGame.PlayerManager.LocalPlayer` returns its nested
+`Player` object with a `playerCharacter` property typed `SSSGame.PlayerCharacter`.
+The resolver requires exactly one current PlayerManager and does not cache wrappers.
+`SSSGame.Weather.WeatherSystem.Instance` is a static WeatherSystem property.
+Both adapters test Unity native-object validity on every resolution; scene transitions
+return unavailable rather than reusing a stale native wrapper. This is signature/build
+validation, not evidence that a save has been loaded or runtime behavior tested.
+
 These notes record the game API observations made from the user's locally generated BepInEx IL2CPP interop assemblies for the current ASKA installation. They exist so implementation agents do not invent game API names when the proprietary game DLLs are unavailable in the cloud workspace.
 
 ## Compatibility context
