@@ -2,6 +2,8 @@
 
 Date: 2026-09-14. Tasks 1-6 implementation and local build are complete; gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. This worker did not install the plugin, launch ASKA or load/edit a save. Packaging/release verification belongs to the coordinating agent.
 
+Subsequent coordinating-agent package installation and combined startup passed; see the [final checklist](v1-release-checklist.md). The task-local evidence below is historical; native UI and gameplay acceptance remain manual.
+
 ## Automated evidence
 
 - Full Release core suite: 63 tests pass, including nine tribe DTO/search/need-request tests and eight compatibility-refresh/reset/Steam-manifest tests added in this stage.

@@ -40,3 +40,7 @@ remain unverified in game.
 
 Raw game logs are deliberately not included: they can contain account information
 and authentication tickets. Record only sanitized version/error evidence here.
+
+## Combined candidate startup
+
+After all four implementation stages, the two authored DLLs were extracted from the local candidate ZIP into the plugin folder and launched normally through Steam. A fresh log again recorded successful HutchASKA loading and chainloader completion, all 11 expected incompatible controls, and no HutchASKA exception. Diagnostics startup now distinguishes Steam build 25186770 from application version 0.4. Unity and BepInEx matched the versions above. The main-menu session remained Unknown and blocked; no save or gameplay control was used. See the final release checklist for manual acceptance requirements.

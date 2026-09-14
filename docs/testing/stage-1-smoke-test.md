@@ -2,6 +2,8 @@
 
 **Status: MANUAL VERIFICATION REQUIRED / LOCAL_VERIFICATION_REQUIRED.**
 
+Subsequent coordinating-agent installation and bootstrap checks passed; see [loader evidence](local-loader-check.md) and the [final checklist](v1-release-checklist.md). The task-local record below is historical. Gameplay and F8/input acceptance remain manual.
+
 Automated verification on 2026-09-14: 22 core tests pass; local Release plugin build passes with zero warnings and errors. Compilation uses the installed game references and does not establish in-game compatibility. No ASKA process was launched, plugin installed, or save changed by the Stage 1 bootstrap task.
 
 Target context: ASKA Steam build 25186770, Unity 6000.3.12f1, BepInEx 6.0.0-be.755 IL2CPP. These are compatibility targets; the following runtime results have not been verified.
