@@ -15,7 +15,8 @@
     <Reference Include="SandSailorStudio"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/SandSailorStudio.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2Cppmscorlib"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Fusion.Runtime"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/Fusion.Runtime.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <!-- Generated CoreModule exposes incomplete nullable compiler attributes; isolate its global namespace. -->
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.CoreModule.dll</HintPath><Private>false</Private><Aliases>UnityCore</Aliases></Reference>
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
