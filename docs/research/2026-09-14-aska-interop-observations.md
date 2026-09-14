@@ -189,3 +189,6 @@ The by-reference parameter is named deltaTime, not durability loss. Generated IL
 # Implementation inspection: freshness (2026-09-14)
 
 Current Assembly-CSharp metadata confirms instance `void SandSailorStudio.Inventory.ExpirationProcess.Run(SandSailorStudio.Inventory.Item item, ref float deltaTime)` and `Begin(Item)`. Despite its namespace, this process is in Assembly-CSharp. The interval is elapsed processing time; native freshness arithmetic and availability/expiration side effects are not visible in the generated invoke wrapper. No Spoilage is Incompatible, with no blanket process skip or freshness reset. Perishable-item freeze/resume needs manual verification after a narrow hook is proven.
+# Implementation inspection: runtime catalog (2026-09-14)
+
+SandSailorStudio.dll defines `Inventory.ItemInfoDatabase.CompleteItemInfoList`, `ItemInfoList.itemInfoList` (native List of ItemInfo), `ItemInfo.id` (int), `Name` (native display name), inherited Unity `name` (internal asset name), and `stackSize` (int). The browser resolves the unique live database on each explicit refresh, projects strings only, and retains no native definitions. No website or hard-coded item list is used. Snapshot UI metadata is cleared on session transitions; give actions always resolve definitions again.
