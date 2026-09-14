@@ -6,7 +6,7 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Early development toward version `0.1.0`. The pure core, local build/install scripts, fail-closed session contract, and F8 diagnostics shell are implemented. The core tests and local plugin build pass; gameplay features are still planned. In-game verification remains required. All cheats must start off on first installation, and automatic restoration of enabled states must default to off.
+Early development toward version `0.1.0`. Stage 2 Player/World implementation is present, with 38 passing core tests and a successful local plugin build. The Stage 1 bootstrap was observed loading in ASKA; Stage 2 gameplay acceptance is **MANUAL VERIFICATION REQUIRED**. See the [Stage 2 smoke matrix](docs/testing/stage-2-smoke-test.md) and [loader evidence](docs/testing/local-loader-check.md). All cheats start off on first installation; automatic restoration of enabled states defaults to off.
 
 Source projects and local build/install helpers are available. No validated release archive has been published. An in-game smoke test is required before a release can claim runtime compatibility.
 
@@ -26,17 +26,17 @@ Future release notes must state the exact ASKA, Unity, and BepInEx versions test
 
 ## Features
 
-Every entry below is **planned, unavailable at this milestone, and off by default when implemented**. One-shot actions run only on explicit user input.
+Player/World controls are implemented against the current local interop signatures and **not yet verified in a save**. Temperature and hour adjustment are explicitly disabled. Later-stage features remain planned. All gameplay toggles default off.
 
-| Area | Planned controls |
+| Area | Controls and implementation status |
 | --- | --- |
-| Player | God Mode, infinite stamina, independent hunger/thirst/temperature controls, movement speed from 1.0x to 5.0x |
-| Items | Prevent future durability/freshness loss, retain stack quantity on use, searchable runtime Item Browser with quantity selection |
-| Crafting & Building | Free crafting, construction, and repairs through native completion flows |
-| World | Freeze world time, -1/+1 hour adjustment, separate game-speed presets of 0.5x/1.0x/2.0x/5.0x |
-| Tribe | Invincibility, hunger/thirst/temperature/energy/rest/happiness/aging controls, heal tribe and restore needs actions |
-| Villagers | Individual health/needs/age editing and accelerated native recruitment, subject to verified game APIs |
-| Advanced & Diagnostics | Reset All, optional state persistence, configurable hotkeys, compatibility checks, feature states and error reasons |
+| Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, movement 1.0x-5.0x. Temperature Immunity: Incompatible, safe warmth range unverified |
+| Items | Planned: prevent future durability/freshness loss, retain quantity on use, Item Browser |
+| Crafting & Building | Planned: free crafting, construction, and repairs through native completion flows |
+| World | Implemented: Freeze Time and separate game-speed presets 0.5x/1x/2x/5x. -1/+1 hour: Incompatible, SetGameTime units/day boundaries unverified |
+| Tribe | Planned: invincibility, needs/aging controls, heal tribe and restore needs |
+| Villagers | Planned: individual editing and accelerated native recruitment |
+| Advanced & Diagnostics | Implemented: Reset All, optional state persistence, configurable hotkeys, compatibility checks, feature states and error reasons |
 
 God Mode must block damage without inflating maximum health. Durability and freshness toggles preserve existing values. Add Items On Use retains quantity instead of duplicating arbitrary items. Recruitment must complete ASKA's normal lifecycle; arbitrary villager spawning is out of scope. Blueprint requirement bypass is optional and depends on a verified narrow hook.
 
@@ -97,7 +97,7 @@ Game, Unity interop, and BepInEx references must not be copied into build output
 
 ## Controls
 
-These are planned defaults and are not available yet:
+Implemented defaults; their in-game interaction remains part of the manual smoke matrix:
 
 | Key / control | Action |
 | --- | --- |
@@ -107,7 +107,9 @@ These are planned defaults and are not available yet:
 | F5 | Toggle freeze world time |
 | Reset All | Disable active cheats and restore native behavior where technically possible |
 
-Other features are menu-first unless a hotkey is configured. Planned tabs are Player, Items, Crafting & Building, World, Tribe, Advanced, and Diagnostics. BepInEx configuration will store hotkeys, multipliers, verbosity, and optional toggle persistence; trainer configuration does not belong in game saves.
+Player, World, Advanced, and Diagnostics tabs contain controls; later-stage tabs are placeholders. BepInEx configuration stores the four hotkeys, movement/game-speed selections, and optional enabled-state persistence. Duplicate gameplay hotkeys are ignored and the menu key takes priority. Set `RestoreEnabledStatesOnLaunch` only to explicitly opt in; restoration waits for positive single-player confirmation. Trainer configuration is stored in `BepInEx/config/com.jfhutchi.hutchaska.cfg`, never in game saves.
+
+The menu preserves cursor state and uses an owned ASKA input context while open. Input suppression and native-menu interaction still require manual verification. Game speed respects native zero-scale pause states and restores the captured baseline; movement removes only its own native modifier. Reset All retries failed native cleanup where the target is still safely available. A scene-replaced target faults visibly rather than touching a stale native wrapper.
 
 ## Single-Player Safety
 
@@ -130,13 +132,14 @@ Missing or changed hooks must leave the affected feature incompatible or disable
 
 ## Diagnostics and Logs
 
-The planned Diagnostics tab reports HutchASKA, ASKA (when detectable), Unity, and BepInEx versions; the single-player decision; and each feature's state and failure reason. Expected feature states include Disabled, Enabled, Blocked, Incompatible, and Faulted. Repeated feature errors must disable that feature without taking down unrelated features.
+The Diagnostics tab reports HutchASKA, ASKA application version, Unity, and BepInEx versions; the single-player decision; and each feature's state and failure reason. Application.version is not the Steam build ID. States include Disabled, Enabled, Blocked, Incompatible, and Faulted. Repeated feature errors disable that feature independently; session discovery stops after three exceptions and remains blocked until restart.
 
 Full exceptions belong in the local `ASKA\BepInEx\LogOutput.log`; the UI should show a concise explanation. For a bug report, include versions, session type, reproduction steps, the affected feature, and the relevant log excerpt. Review logs for personal paths or other private information before sharing. Do not attach game DLLs or save files to public reports.
 
 ## Known Limitations
 
-- The diagnostics shell builds locally but has not passed the in-game smoke matrix; no validated release ZIP exists.
+- The Stage 1 shell loaded successfully; Stage 2 controls build locally but have not passed the in-game smoke matrix. No validated release ZIP exists.
+- Temperature Immunity and +/-1 hour are Incompatible until their native semantics are verified.
 - Detected game/runtime versions have not established HutchASKA compatibility with the current installed game.
 - Multiplayer/co-op, network manipulation, achievement modification, DRM/access-control bypass, and external memory trainers are outside scope.
 - Exact game hooks require local assembly inspection; research notes alone do not verify every signature.
