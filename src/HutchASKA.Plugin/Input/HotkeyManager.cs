@@ -1,5 +1,5 @@
 using BepInEx.Configuration;
-using HutchASKA.Core.Features;
+using HutchASKA.Core.Input;
 using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Infrastructure;
 
@@ -31,9 +31,7 @@ internal sealed class HotkeyManager
             var key = binding.Key.Value;
             if (key == KeyCode.None || key == Menu.Value || keys.Count(k => k.Key.Value == key) != 1 || !UnityEngine.Input.GetKeyDown(key)) continue;
             var feature = host.Registry.Find(binding.Id);
-            if (feature is null || feature.State is FeatureState.Faulted or FeatureState.Incompatible or FeatureState.Blocked) continue;
-            if (feature.State == FeatureState.Enabled) feature.Disable(); else feature.TryEnable();
-            config.Remember(feature);
+            if (feature is not null && FeatureInputActions.TryToggle(feature)) config.Remember(feature);
         }
     }
 }

@@ -12,6 +12,7 @@ namespace HutchASKA.Plugin.Input;
 internal sealed class MenuInputFeature() : NativeFeature("ui.input", "Trainer Gameplay Input Suppression")
 {
     private Context? ownedContext;
+    private bool contextInstalled;
     private int? managerIdentity;
     public override CompatibilityResult ProbeCompatibility() =>
         typeof(InputManager).GetMethod("AddContext", new[] { typeof(Context) }) is not null &&
@@ -23,7 +24,12 @@ internal sealed class MenuInputFeature() : NativeFeature("ui.input", "Trainer Ga
         if (!manager) return;
         if (managerIdentity.HasValue && managerIdentity != manager!.GetInstanceID())
             throw new InvalidOperationException("Input manager changed while trainer was open.");
-        if (ownedContext is not null) return;
+        if (ownedContext is not null)
+        {
+            // Keep partial native state for cleanup, but do not treat allocation as installation.
+            if (!contextInstalled) throw new InvalidOperationException("Trainer input context installation did not complete.");
+            return;
+        }
         ownedContext = ScriptableObject.CreateInstance<Context>();
         ownedContext.inputMaps = new Il2CppStructArray<InputManager.InputMaps>(0);
         ownedContext.priority = int.MaxValue;
@@ -32,6 +38,7 @@ internal sealed class MenuInputFeature() : NativeFeature("ui.input", "Trainer Ga
         ownedContext.keepCameraFov = true;
         managerIdentity = manager!.GetInstanceID();
         manager.AddContext(ownedContext);
+        contextInstalled = true;
     }
     public override void Disable()
     {
@@ -41,6 +48,7 @@ internal sealed class MenuInputFeature() : NativeFeature("ui.input", "Trainer Ga
             if (manager && manager!.GetInstanceID() == managerIdentity) manager.RemoveContext(ownedContext);
             NativeObject.Destroy(ownedContext);
             ownedContext = null;
+            contextInstalled = false;
             managerIdentity = null;
         }
         base.Disable();

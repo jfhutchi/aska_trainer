@@ -16,6 +16,7 @@ is claimed. Stage 1 loader evidence is recorded separately in [local-loader-chec
 - `git ls-files '*.dll' '*.exe'`: no tracked binaries.
 - Required native members were inspected with local Mono.Cecil; research records exact signatures and uncertain semantics.
 - Installation/boot checking belongs to the coordinating agent; see its loader record for the exact installed version/evidence. The implementation worker did not install or launch ASKA.
+- Review follow-up: three pure input lifecycle tests cover menu recovery after session confirmation, hotkey reactivation after a blocked session, and terminal failure isolation after a partial enable. They do not establish native input-context behavior.
 
 ## Exact smoke matrix
 
@@ -45,6 +46,8 @@ disabled independently. Never treat compilation or an old loader log as a runtim
 - Reset All restores active modifiers/clocks; failed cleanup can be explicitly retried without a frame-by-frame exception loop.
 - No Unity time-scale change leaks after gate loss or trainer component disable.
 - Menu input context is removed on close, component disable, and safe manager transitions.
+- Keep F8 open while entering a single-player session and across a temporary loss of session confirmation; gameplay suppression must resume without closing/reopening the trainer. Previously blocked F1/F2/F5 features must respond again to an explicit key press after single-player confirmation.
+- A failed native input-context installation must reach the feature's bounded failure/cleanup path, never appear successfully installed merely because a context was allocated. Native fault injection remains MANUAL VERIFICATION REQUIRED.
 - Opt-in restoration waits for positive single-player confirmation; configuration never silently enables cheats by default.
 
 All additional checks are MANUAL VERIFICATION REQUIRED unless a specific automated test

@@ -5,6 +5,7 @@ using UnityEngine;
 using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Input;
 using HutchASKA.Core.Features;
+using HutchASKA.Core.Input;
 
 namespace HutchASKA.Plugin.UI;
 
@@ -40,6 +41,7 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
         if (menuKey is not null && UnityEngine.Input.GetKeyDown(menuKey.Value)) SetVisible(!visible);
         if (guard is not null) config?.TryRestore(guard);
         hotkeys?.Tick();
+        if (visible && menuInput is not null) FeatureInputActions.EnsureEnabled(menuInput);
         host?.Tick();
     }
 
@@ -69,7 +71,7 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
         {
             previousCursorVisible = Cursor.visible;
             previousCursorLock = Cursor.lockState;
-            menuInput?.TryEnable();
+            if (menuInput is not null) FeatureInputActions.EnsureEnabled(menuInput);
         }
         else
         {
