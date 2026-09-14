@@ -116,6 +116,16 @@ Design implication: freeze/advance/rewind world time should use these native con
 
 ## Movement surface
 
+Stage 2 reinspection: `SSSGame.Controllers.CharacterMovement._moveMultiAttr` is
+`SandSailorStudio.Attributes.Attribute`. Attribute exposes `baseValue`, `GetValue`,
+`SetValue(float)`, `AddModifier(AttributeModifier)` and `RemoveModifier(AttributeModifier)`.
+`AttributeModifier(float, ModifierOperation)` is available and the enum has
+ADD=0, MULTIPLY=1, PERCENTADD=2. Movement uses an owned MULTIPLY modifier, removed
+at 1x/disable, preserving the current native baseline and unrelated modifiers.
+No attribute wrapper is retained; restoration resolves the current player and checks
+player instance ID plus attribute identity. A replaced/unloaded target faults visibly
+instead of accessing stale native memory. Runtime speed/restoration still needs smoke testing.
+
 The current interop assembly exposes `SSSGame.CharacterMovement` and movement-speed/sprint-related controls. The exact stable member used for the 1.0x–5.0x movement multiplier must be re-verified from the user's local current interop DLL before committing a strongly typed patch. Do not invent a field name.
 
 ## Tribe/villager surface

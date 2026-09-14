@@ -32,6 +32,8 @@ public sealed class Plugin : BasePlugin
         host.Register(new SurvivalFeatureSet(Players, true));
         host.Register(new SurvivalFeatureSet(Players, false));
         host.Register(new TemperatureImmunityFeature());
+        var movement = new MovementSpeedFeature(Players);
+        host.Register(movement);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
