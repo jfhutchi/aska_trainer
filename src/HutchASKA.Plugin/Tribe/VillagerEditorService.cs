@@ -17,8 +17,12 @@ internal sealed class VillagerEditorService(ITribeContext tribe) : NativeActionF
         return success;
     }
 
-    public bool TryApply(string stableId, VillagerEditRequest request, out string? error) =>
-        Execute(() => (tribe.TryApply(stableId, request, out var reason), reason), out error);
+    public bool TryApply(string stableId, VillagerEditRequest request, out string? error)
+    {
+        var success = Execute(() => (tribe.TryApply(stableId, request, out var reason), reason), out error);
+        if (!success) error += " Earlier requested fields may have applied; refresh and inspect current values before retrying.";
+        return success;
+    }
 
     public bool TryHeal(string stableId, out string? error) =>
         Execute(() => (tribe.TryHeal(stableId, out var reason), reason), out error);

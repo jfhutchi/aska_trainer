@@ -75,11 +75,13 @@ public sealed class Plugin : BasePlugin
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
-        var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, catalog, give, editor, healTribe, restoreTribe);
+        var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion,
+            SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
+        var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, catalog, give, editor, healTribe, restoreTribe, diagnostics);
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
-        Log.LogInfo($"{PluginName} {PluginVersion}; ASKA {versions.Game}; Unity {versions.Unity}; BepInEx {versions.BepInEx}");
+        Log.LogInfo($"{PluginName} {PluginVersion}; ASKA application {versions.Game}; Steam build {versions.SteamBuild}; Unity {versions.Unity}; BepInEx {versions.BepInEx}");
         Log.LogInfo($"Session: {guard.Mode}; {guard.Decision.Reason}. Gameplay features default off.");
     }
 }

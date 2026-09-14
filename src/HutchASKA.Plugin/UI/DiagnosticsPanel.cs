@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace HutchASKA.Plugin.UI;
 
-public sealed record RuntimeVersions(string Game, string Unity, string BepInEx);
+public sealed record RuntimeVersions(string Game, string Unity, string BepInEx, string SteamBuild = "Unavailable");
 
 public sealed class DiagnosticsPanel(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions)
 {
     public void Draw()
     {
         GUILayout.Label($"HutchASKA: {Plugin.PluginVersion}");
-        GUILayout.Label($"ASKA application version: {versions.Game} (Steam build not detected)");
+        GUILayout.Label($"ASKA Steam build: {versions.SteamBuild}");
+        GUILayout.Label($"ASKA application version: {versions.Game}");
         GUILayout.Label($"Unity: {versions.Unity}");
         GUILayout.Label($"BepInEx: {versions.BepInEx}");
         GUILayout.Label($"Session: {guard.Mode}; allowed: {guard.Decision.Allowed}");

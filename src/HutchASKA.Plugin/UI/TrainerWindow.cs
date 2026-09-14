@@ -14,9 +14,8 @@ namespace HutchASKA.Plugin.UI;
 internal sealed class TrainerWindow
 {
     private readonly SinglePlayerGuard guard;
-    private readonly DiagnosticsPanel diagnostics;
-    private readonly ConfigEntry<bool> restoreStates;
-    private readonly RuntimeConfiguration config;
+    private readonly DiagnosticsTab diagnostics;
+    private readonly AdvancedTab advanced;
     private readonly PlayerTab playerTab;
     private readonly WorldTab worldTab;
     private readonly ItemsTab itemsTab;
@@ -32,18 +31,18 @@ internal sealed class TrainerWindow
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
         MovementSpeedFeature movement, GameSpeedFeature speed, AskaItemCatalog catalog, GiveItemFeature give,
-        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe)
+        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe, DiagnosticsService diagnosticsService)
     {
         this.guard = guard;
-        this.config = config;
-        restoreStates = config.RestoreStates;
         var controls = new FeatureControls(host, guard, config);
         playerTab = new PlayerTab(controls, movement, config);
         worldTab = new WorldTab(controls, speed, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls);
         tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe);
-        diagnostics = new DiagnosticsPanel(host, guard, versions);
+        diagnostics = new DiagnosticsTab(diagnosticsService);
+        advanced = new AdvancedTab(config, diagnosticsService);
+        config.TransientStateCleared += ClearTransientState;
         drawContents = (Action<int>)DrawContents;
     }
 
@@ -63,6 +62,8 @@ internal sealed class TrainerWindow
         if (!guard.Decision.Allowed) { itemsTab.Clear(); tribeTab.Clear(); }
     }
 
+    private void ClearTransientState() { itemsTab.Clear(); tribeTab.Clear(); advanced.Clear(); }
+
     private void DrawContents(int id)
     {
         GUILayout.BeginVertical();
@@ -79,14 +80,7 @@ internal sealed class TrainerWindow
                 else if (selectedTab == 2) craftingTab.Draw();
                 else if (selectedTab == 3) worldTab.Draw();
                 else if (selectedTab == 4) tribeTab.Draw();
-                else if (selectedTab == 5)
-                {
-                    restoreStates.Value = GUILayout.Toggle(restoreStates.Value, "Restore enabled states on next launch (opt in)");
-                    GUILayout.Label("Configuration is stored in BepInEx/config/com.jfhutchi.hutchaska.cfg.");
-                    if (GUILayout.Button("Reset All / Restore Native Values")) config.ResetAll();
-                    GUILayout.Label("F1 God Mode | F2 Stamina | F5 Freeze Time | F8 Menu. Keys are configurable.");
-                    GUILayout.Label("Duplicate gameplay hotkeys are ignored; the menu key takes priority.");
-                }
+                else if (selectedTab == 5) advanced.Draw();
                 else GUILayout.Label("This module is planned for a later stage.");
             }
             finally { GUILayout.EndScrollView(); }

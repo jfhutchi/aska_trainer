@@ -16,6 +16,8 @@ Expected loading, missing targets and validation failures return empty/error res
 
 `SandSailorStudio.Attributes.VariableAttribute` has float `min`, `max`, `GetValue()` and void `SetValue(float)`. Requested fractions are finite, clamped to [0,1], then mapped to native ranges. Health is capped by MaxHealth and happiness by HappinessCap. All requested ranges are validated before writes. Null request fields make no edit. Native setter failures may leave earlier requested fields applied; no speculative rollback is attempted.
 
+Null fields also skip the native getters/cap access entirely, so a food-only maintenance pass does not touch health or happiness. Snapshot refresh intentionally reads all visible fields; Apply Changes sends only fields changed in the current editor draft. Failed multi-field/global edits surface a partial-update notice and require a fresh inspection rather than retrying automatically.
+
 Warmth's safe endpoint is unverified, so it can be read but cannot be edited or maximized. Remaining lifetime is not chronological age: `_OnLifetimeReachedMin()` is a native death/progression callback, not a safe age setter. Snapshot Age is null; age editing and freeze aging are unavailable.
 
 ## Damage and recruitment

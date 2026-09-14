@@ -8,8 +8,8 @@ public sealed class HostedFeature : ITrainerFeature
     private readonly ITrainerFeature feature;
     private readonly Func<SinglePlayerDecision> decision;
     private readonly Action<string, Exception> reportError;
-    private readonly FeatureCircuitBreaker breaker = new(3);
-    private readonly FeatureExecutionGuard execution;
+    private FeatureCircuitBreaker breaker = new(3);
+    private FeatureExecutionGuard execution;
     private CompatibilityResult? compatibility;
     private bool active;
     private bool cleanupPending;
@@ -26,6 +26,19 @@ public sealed class HostedFeature : ITrainerFeature
     public string DisplayName => feature.DisplayName;
     public FeatureState State { get; private set; }
     public string? StatusReason { get; private set; }
+    public bool HasPendingCleanup => cleanupPending;
+
+    public CompatibilityResult RefreshCompatibility()
+    {
+        Disable();
+        if (State == FeatureState.Faulted)
+            return CompatibilityResult.Incompatible(StatusReason ?? "Feature remains faulted until restart.");
+        compatibility = null;
+        breaker = new FeatureCircuitBreaker(3);
+        execution = new FeatureExecutionGuard(breaker);
+        SetState(FeatureState.Disabled, null);
+        return ProbeCompatibility();
+    }
 
     public CompatibilityResult ProbeCompatibility()
     {
@@ -72,6 +85,7 @@ public sealed class HostedFeature : ITrainerFeature
         var gate = decision();
         if (!gate.Allowed) { Block(gate.Reason); return false; }
         var success = Run("Runtime action", action);
+        if (success) StatusReason = feature.StatusReason;
         if (!success && breaker.IsOpen)
             Stop(FeatureState.Faulted, StatusReason);
         return success;
@@ -98,7 +112,7 @@ public sealed class HostedFeature : ITrainerFeature
         if (!active && !cleanupPending) return;
         active = false;
         cleanupPending = true;
-        // Cleanup must run even after the runtime breaker opens, once per activation.
+        // Cleanup also runs after the breaker opens; failed cleanup is retried only by explicit lifecycle actions.
         var cleanupBreaker = new FeatureCircuitBreaker(1);
         if (!new FeatureExecutionGuard(cleanupBreaker).TryRun(feature.Disable))
         {

@@ -67,16 +67,19 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             if (request.WarmthFraction is not null) throw new TribeUnavailableException(WarmthUnavailable);
             var villager = Resolve(stableId);
             if (request.IsEmpty) { error = null; return true; }
-            var survival = villager.GetSurvival();
-            if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
             // Validate every requested native range before making the first write.
             var writes = new List<(VariableAttribute Attribute, float Value)>();
-            Add(writes, villager._healthVAttr, request.HealthFraction, villager.MaxHealth);
-            Add(writes, survival._foodVAttr, request.FoodFraction);
-            Add(writes, survival._waterVAttr, request.WaterFraction);
-            Add(writes, survival._energyVAttr, request.EnergyFraction);
-            Add(writes, survival._restVariableAttribute, request.RestFraction);
-            Add(writes, villager._happinessVAttr, request.HappinessFraction, villager.HappinessCap);
+            if (request.HealthFraction is not null) Add(writes, villager._healthVAttr, request.HealthFraction, villager.MaxHealth);
+            if (request.HappinessFraction is not null) Add(writes, villager._happinessVAttr, request.HappinessFraction, villager.HappinessCap);
+            if (request.FoodFraction is not null || request.WaterFraction is not null || request.EnergyFraction is not null || request.RestFraction is not null)
+            {
+                var survival = villager.GetSurvival();
+                if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
+                if (request.FoodFraction is not null) Add(writes, survival._foodVAttr, request.FoodFraction);
+                if (request.WaterFraction is not null) Add(writes, survival._waterVAttr, request.WaterFraction);
+                if (request.EnergyFraction is not null) Add(writes, survival._energyVAttr, request.EnergyFraction);
+                if (request.RestFraction is not null) Add(writes, survival._restVariableAttribute, request.RestFraction);
+            }
             foreach (var write in writes)
             {
                 RequireSession();

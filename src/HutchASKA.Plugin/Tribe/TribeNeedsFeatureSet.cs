@@ -60,6 +60,7 @@ internal sealed class TribeRestoreFeature(ITribeContext tribe, bool heal)
         }, out error);
         count = affected;
         error ??= operationError;
+        if (!success) error = $"Updated {affected} villager(s) before a native failure. The current villager may be partially updated; refresh before retrying. {error}";
         return success && operationError is null;
     }
 }
