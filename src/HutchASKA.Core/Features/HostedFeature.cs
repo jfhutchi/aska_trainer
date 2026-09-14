@@ -62,11 +62,18 @@ public sealed class HostedFeature : ITrainerFeature
 
     public void Tick()
     {
-        if (!active || State != FeatureState.Enabled) return;
+        TryExecute(feature.Tick);
+    }
+
+    public bool TryExecute(Action action)
+    {
+        if (!active || State != FeatureState.Enabled) return false;
         var gate = decision();
-        if (!gate.Allowed) { Block(gate.Reason); return; }
-        if (!Run("Tick", feature.Tick) && breaker.IsOpen)
+        if (!gate.Allowed) { Block(gate.Reason); return false; }
+        var success = Run("Runtime action", action);
+        if (!success && breaker.IsOpen)
             Stop(FeatureState.Faulted, StatusReason);
+        return success;
     }
 
     public void Disable()

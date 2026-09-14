@@ -9,7 +9,7 @@ public sealed class FeatureHost(SinglePlayerGuard guard, ManualLogSource log)
 
     public HostedFeature Register(ITrainerFeature feature)
     {
-        var hosted = new HostedFeature(feature, () => guard.Decision,
+        var hosted = new HostedFeature(feature, guard.Refresh,
             (operation, error) => log.LogError($"{operation}: {error}"));
         Registry.Register(hosted);
         var compatibility = hosted.ProbeCompatibility();
@@ -20,6 +20,7 @@ public sealed class FeatureHost(SinglePlayerGuard guard, ManualLogSource log)
 
     public void Tick()
     {
+        guard.Refresh();
         foreach (var feature in Registry.Snapshot()) feature.Tick();
     }
 

@@ -4,6 +4,7 @@ using BepInEx.Unity.IL2CPP;
 using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.UI;
 using HutchASKA.Plugin.Game;
+using HutchASKA.Plugin.Player;
 using UnityEngine;
 
 namespace HutchASKA.Plugin;
@@ -24,6 +25,8 @@ public sealed class Plugin : BasePlugin
             "Opt in to restoring enabled features. Stage 1 has no gameplay features to restore.");
         var guard = new SinglePlayerGuard();
         var host = new FeatureHost(guard, Log);
+        var god = new GodModeFeature(Players);
+        god.Hosted = host.Register(god);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";
@@ -32,6 +35,6 @@ public sealed class Plugin : BasePlugin
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, menuKey);
         Log.LogInfo($"{PluginName} {PluginVersion}; ASKA {versions.Game}; Unity {versions.Unity}; BepInEx {versions.BepInEx}");
-        Log.LogInfo($"Session: {guard.Mode}; {guard.Decision.Reason}. No gameplay features registered.");
+        Log.LogInfo($"Session: {guard.Mode}; {guard.Decision.Reason}. Gameplay features default off.");
     }
 }
