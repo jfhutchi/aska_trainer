@@ -25,10 +25,11 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
     public override CompatibilityResult ProbeCompatibility() =>
         AccessTools.DeclaredMethod(typeof(BuildSession), "_OnAnimatorEvent", new[] { typeof(string) })?.ReturnType == typeof(void)
         && AccessTools.DeclaredMethod(typeof(BuildInteraction), "RequestAddBuildVolume", new[] { typeof(float).MakeByRefType() })?.ReturnType == typeof(void)
-        && typeof(BuildSession).GetProperty("Agent")?.PropertyType == typeof(PlayerInteractionAgent)
-        && typeof(BuildSession).GetProperty("BuildInteraction")?.PropertyType == typeof(BuildInteraction)
-        && typeof(BuildSession).GetProperty("_actionStarted")?.PropertyType == typeof(bool)
-        && typeof(BuildSession).GetProperty("_targetMatched")?.PropertyType == typeof(bool)
+        // This session hides the base Agent property with a more specific return type.
+        && AccessTools.DeclaredProperty(typeof(BuildSession), "Agent")?.PropertyType == typeof(PlayerInteractionAgent)
+        && AccessTools.DeclaredProperty(typeof(BuildSession), "BuildInteraction")?.PropertyType == typeof(BuildInteraction)
+        && AccessTools.DeclaredProperty(typeof(BuildSession), "_actionStarted")?.PropertyType == typeof(bool)
+        && AccessTools.DeclaredProperty(typeof(BuildSession), "_targetMatched")?.PropertyType == typeof(bool)
         ? CompatibilityResult.Compatible()
         : CompatibilityResult.Incompatible("Local player construction contribution API is unavailable.");
 
