@@ -2,6 +2,8 @@
 
 Date: 2026-09-14. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
 
+User retest update: 0.1.2 screenshots show readable Player/Items/Crafting panels and 1,136 catalog entries. The user reports approximately 115 FPS; the follow-up Player screenshot shows God Mode, Infinite Stamina, Infinite Hunger and Infinite Thirst checked, with movement Disabled at a saved 1.5x setting. This is user-observed performance, not a controlled benchmark or verification of the native effects. See [retest evidence and remaining limits](readability-performance-repair.md).
+
 ## Environment actually observed
 
 | Component | Observed |
