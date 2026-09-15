@@ -23,10 +23,11 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.1";
+    public const string PluginVersion = "0.1.2";
 
     public override void Load()
     {
+        GameObjectResolver.Initialize(message => Log.LogWarning(message));
         var guard = new SinglePlayerGuard(error => Log.LogError($"Session discovery: {error}"));
         var host = new FeatureHost(guard, Log);
         var god = new GodModeFeature(Players);

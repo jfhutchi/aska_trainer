@@ -8,6 +8,6 @@ internal static class VariableAttributeController
     internal static void Fill(VariableAttribute attribute)
     {
         var maximum = AttributeMath.ValueAtFraction(attribute.min, attribute.max, 1);
-        attribute.SetValue(maximum);
+        if (attribute.GetValue() != maximum) attribute.SetValue(maximum);
     }
 }

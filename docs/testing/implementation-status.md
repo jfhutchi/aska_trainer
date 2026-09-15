@@ -61,6 +61,8 @@ Input lifecycle review fixes landed with the native Give Item task in 4d525a3 af
 
 ## Remaining external acceptance
 
+Version 0.1.2 responds to the user's low-contrast screenshot and approximately 10 FPS report with an owned opaque GUI skin and lifecycle-invalidated manager discovery. 69 core tests and the local plugin build pass. The 0.1.1 screenshot confirms menu rendering, but actual 0.1.2 FPS/readability/input acceptance remains pending. See [readability/performance evidence](readability-performance-repair.md).
+
 Post-implementation repair: the user reported a native menu failure in 0.1.0. Version 0.1.1 replaces two stripped toolbar call paths, contains callback faults, and adds a local interop regression gate plus three core tests (66 total). See [GUI repair evidence](gui-rendering-repair.md). Native menu retesting remains required.
 
 Gameplay release acceptance is blocked by manual native-UI/save testing that was not performed through available tools. The user explicitly authorized continuing implementation and documenting those gaps. Uncertain native hook tasks are closed with the required Incompatible fallback; supporting them later requires new native behavior evidence and the corresponding manual matrix. No unverified feature is claimed working and no v1 release-ready claim is made. The implementation branch, source, research and local candidate ZIP are preserved for review; no push, merge or publication was performed.

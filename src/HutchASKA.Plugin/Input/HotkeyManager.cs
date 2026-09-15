@@ -25,11 +25,11 @@ internal sealed class HotkeyManager
     }
     public void Tick()
     {
-        if (!guard.Refresh().Allowed) return;
         foreach (var binding in keys)
         {
             var key = binding.Key.Value;
             if (key == KeyCode.None || key == Menu.Value || keys.Count(k => k.Key.Value == key) != 1 || !UnityEngine.Input.GetKeyDown(key)) continue;
+            if (!guard.Refresh().Allowed) return;
             var feature = host.Registry.Find(binding.Id);
             if (feature is not null && FeatureInputActions.TryToggle(feature)) config.Remember(feature);
         }

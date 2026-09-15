@@ -4,6 +4,12 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Fixed in 0.1.2 development candidate
+
+- Opaque trainer window, stronger text contrast, larger controls and selected-tab styling; preserve other GUI users' skin/tint/enabled state after drawing.
+- Replace repeated manager discovery in session checks and stamina callbacks with lifecycle-invalidated candidate indexes that still check live state and uniqueness on each lookup.
+- Avoid idle hotkey session refreshes and redundant survival writes. Add three discovery regressions (69 core tests total); actual FPS and visual acceptance remain pending.
+
 ### Fixed in 0.1.1 development candidate
 
 - Replaced the tab toolbar with buttons because both the string-array conversion and final toolbar implementation are unstripping-failure stubs in the installed ASKA interop.

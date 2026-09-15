@@ -21,6 +21,7 @@ The plugin build resolves these files from that installation (the project file i
 %ASKA_GAME_DIR%\BepInEx\interop\Fusion.Runtime.dll
 %ASKA_GAME_DIR%\BepInEx\interop\UnityEngine.CoreModule.dll
 %ASKA_GAME_DIR%\BepInEx\interop\UnityEngine.IMGUIModule.dll
+%ASKA_GAME_DIR%\BepInEx\interop\UnityEngine.TextRenderingModule.dll
 %ASKA_GAME_DIR%\BepInEx\interop\UnityEngine.InputLegacyModule.dll
 ```
 

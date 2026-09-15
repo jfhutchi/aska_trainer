@@ -64,6 +64,8 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
         host?.DisableAll();
     }
 
+    public void OnDestroy() => window?.ReleaseResources();
+
     private void SetVisible(bool value)
     {
         if (value && window is { CanDraw: false }) return;

@@ -22,9 +22,10 @@ internal sealed class TrainerWindow
     private readonly TribeTab tribeTab;
     private readonly GUI.WindowFunction drawContents;
     private readonly CallbackGuard renderGuard;
+    private readonly TrainerTheme theme = new();
     private readonly string[] tabs =
         { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" };
-    private Rect bounds = new(40, 40, 850, 480);
+    private Rect bounds = new(20, 20, 960, 620);
     private Vector2 scroll;
     private int selectedTab;
     private bool open;
@@ -58,12 +59,37 @@ internal sealed class TrainerWindow
     private void DrawWindow()
     {
         open = true;
-        bounds.width = Mathf.Min(850, Screen.width - 20);
-        bounds.height = Mathf.Min(480, Screen.height - 20);
+        bounds.width = Mathf.Min(960, Screen.width - 20);
+        bounds.height = Mathf.Min(620, Screen.height - 20);
         bounds.x = Mathf.Clamp(bounds.x, 0, Mathf.Max(0, Screen.width - bounds.width));
         bounds.y = Mathf.Clamp(bounds.y, 0, Mathf.Max(0, Screen.height - bounds.height));
-        bounds = GUI.Window(0x4841534B, bounds, drawContents, $"HutchASKA {Plugin.PluginVersion}");
+        var previousSkin = GUI.skin;
+        var previousColor = GUI.color;
+        var previousContent = GUI.contentColor;
+        var previousBackground = GUI.backgroundColor;
+        var previousEnabled = GUI.enabled;
+        try
+        {
+            theme.Initialize(previousSkin);
+            GUI.skin = theme.Skin;
+            // Other OnGUI callbacks can leave tint/alpha/disabled state behind. Own our draw state.
+            GUI.color = Color.white;
+            GUI.contentColor = Color.white;
+            GUI.backgroundColor = Color.white;
+            GUI.enabled = true;
+            bounds = GUI.Window(0x4841534B, bounds, drawContents, $"HutchASKA {Plugin.PluginVersion}");
+        }
+        finally
+        {
+            GUI.skin = previousSkin;
+            GUI.color = previousColor;
+            GUI.contentColor = previousContent;
+            GUI.backgroundColor = previousBackground;
+            GUI.enabled = previousEnabled;
+        }
     }
+
+    public void ReleaseResources() => theme.Dispose();
 
     public void UpdateContext()
     {
@@ -106,24 +132,29 @@ internal sealed class TrainerWindow
             if (GUILayout.Button("Close")) open = false;
         }
         finally { GUILayout.EndVertical(); }
-        GUI.DragWindow(new Rect(0, 0, bounds.width, 20));
+        GUI.DragWindow(new Rect(0, 0, bounds.width, 32));
     }
 
     private void DrawTabs()
     {
         // Both GUIContent.Temp(string[]) and the final Toolbar overload are stripped in ASKA.
-        GUILayout.BeginHorizontal();
-        try
+        // Two rows leave room for readable labels at smaller window sizes.
+        for (var row = 0; row < 2; row++)
         {
-            for (var i = 0; i < tabs.Length; i++)
+            GUILayout.BeginHorizontal();
+            try
             {
-                if (GUILayout.Button(i == selectedTab ? $"[{tabs[i]}]" : tabs[i]) && i != selectedTab)
+                for (var i = row * 4; i < Math.Min(row * 4 + 4, tabs.Length); i++)
                 {
-                    selectedTab = i;
-                    scroll = Vector2.zero;
+                    var style = i == selectedTab ? theme.SelectedTab : theme.Skin.button;
+                    if (GUILayout.Button(tabs[i], style) && i != selectedTab)
+                    {
+                        selectedTab = i;
+                        scroll = Vector2.zero;
+                    }
                 }
             }
+            finally { GUILayout.EndHorizontal(); }
         }
-        finally { GUILayout.EndHorizontal(); }
     }
 }
