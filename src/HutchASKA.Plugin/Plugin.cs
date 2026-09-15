@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.4";
+    public const string PluginVersion = "0.1.5";
 
     public override void Load()
     {
@@ -44,7 +44,7 @@ public sealed class Plugin : BasePlugin
         harvesting.Hosted = host.Register(harvesting);
         var buildSpeed = new BuildSpeedFeature(Players);
         buildSpeed.Hosted = host.Register(buildSpeed);
-        var terrain = new TerrainLevelingFeature(Players);
+        var terrain = new TerrainLevelingFeature();
         terrain.Hosted = host.Register(terrain);
         host.Register(new WorldTimeFeature(World));
         var fuel = new InfiniteFuelFeature();

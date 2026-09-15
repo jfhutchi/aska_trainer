@@ -1,5 +1,25 @@
 # Local leveling area, Steam build 25186770
 
+WITHDRAWN IN 0.1.5: the user crashed while extending the second side of a
+20-tile preview. 10x10 was not attempted. Native storage capacity alone did not
+establish preview safety. The expanded placement implementation and hooks have
+been removed; the following records historical 0.1.4 research, not supported
+runtime behavior. See [corrective evidence](../testing/0.1.5-corrective-retest.md).
+
+## Crash cause correction, 2026-09-14 21:35 local
+
+The 0.1.4 implementation checked the completed structure's grid capacity but missed a separate, smaller preview buffer. This invalidates the earlier claim that selecting the large structure made its preview safe for 20-by-20.
+
+Both template assets 135783 and 135784 reference the same `nodePreview` asset 168190. That asset's GameObject 50108 is `PreviewGridLayout`, with `NetworkDynamicDimensionBuildingState_256` component 154813. Native `DynamicDimensionTemplate.CreatePreview` at RVA `0xB32D50` reads the template's **nodePreview** at field offset `0x170` and spawns it. The previously inspected `nodeStructure` field is at `0x168`. The large completed structure's 510-cell interaction map therefore does not expand the preview's 256-bit validity map.
+
+The preview has a concrete native stack overwrite path. `NetworkDynamicDimensionBuildingState_256.UpdateGridValidityOnNetwork` at RVA `0x1057070` reserves `0x40` stack bytes after saving RDI, copies its 32-byte `BitSet256` to stack offset `0x20`, and loops over the full grid array length. For each valid cell it writes to `stack + 0x20 + (cellIndex / 64) * 8`, with **no 256-cell destination bound**. Cells 256-319 write over saved RDI; cells 320-383 write over the function's return address. Raising the placement cap to 400 exposed a native write past the preview buffer.
+
+The matching local ASKA dump (21:35:15 local) records `C0000005`, a read at `0x4C000154`, and fault PC `GameAssembly.dll + 0x109FFF7`. That PC is in the middle of an instruction in unrelated code, consistent with a damaged return address. The active dimensions visible in the saved argument register's stack data are `(17, 4, 20)`: 340 horizontal cells, reaching the return-address overwrite range. Stack return candidates include `DynamicDimensionBuilding.SetDimensions + 0x54E`, `DynamicDimensionTemplate.UpdatePreview + 0x42C`, and `PlayerBuilder_NewController.Update + 0x1D8`. The dump remains outside the repository; no dump contents or personal filesystem paths are included in the project artifacts.
+
+Confidence is high that the undersized shared preview validity buffer explains this crash. The unchecked write and the insufficient preview capacity are directly established by native code and shipped asset references; the crash's dimensions and corrupted instruction pointer agree with that mechanism. The sparse dump does not contain the relevant heap objects, so it does not permit reconstructing every individual validity bit that modified the return address. Template cloning is not needed to explain this failure, and this evidence does not establish cloning or smaller expanded areas as safe. All expanded terrain sizes remain withdrawn in 0.1.5; there is no request for another user reproduction.
+
+## Historical implementation notes
+
 This change expands the rectangular planned leveling field. It does not change the shovel's freehand brush or write terrain height data directly. The setting is a maximum side length in native grid tiles: normal 5, with 10, 15 and 20 supported. Each native tile spans 2 world coordinate units in this build; labels deliberately do not claim that the selected value is meters.
 
 ## Native and serialized evidence
@@ -7,7 +27,7 @@ This change expands the rectangular planned leveling field. It does not change t
 Read-only LibCpp2IL metadata/address inspection and Capstone disassembly of the installed `GameAssembly.dll` established the following:
 
 - `DynamicDimensionsPlacementTool._OnBuildRayChanged` at `0x180A5C3D0` resolves `_currentPreviewData.structureTemplate` at the start of the call. Cursor X/Z distances are divided by `gridConstants.tileSize` and rounded into signed grid dimensions. At `0x180A5C9F8`, the native code reads `DynamicDimensionTemplate.maxNumberOfTiles`; the following multiplication compares the absolute X/Z product to that limit. It declines an oversized cursor update. The limit is an area, so increasing it alone would allow a long 1-by-400 strip.
-- `PlayerBuilder.set_StructureTemplate` at `0x180A73A20` destroys an old preview, stores the actual selected template, invokes that template's native `CreatePreview`, and changes its placement tool. Routing this setter to an existing native large template gives the preview and the later construction path the correct registered prefab.
+- `PlayerBuilder.set_StructureTemplate` at `0x180A73A20` destroys an old preview, stores the actual selected template, invokes that template's native `CreatePreview`, and changes its placement tool. **Corrected after the crash:** routing this setter selects the large completed structure, but both templates still spawn the same smaller preview described above.
 - `PlayerBuilder.set_BuildPlacement` at `0x180A739C0` retains the native placement object. `DynamicDimensionTemplate.UpdatePreview` at `0x180B335F0` consumes its `gridSize` and uses the native dynamic building's `SetDimensions`. `PlacementGrid.SetDimensions` copies the width/depth directly, and `DynamicPlacementGrid` allocates width times depth cells. No extra border cells are required.
 - The ordinary `TerraformingGridState_256.get__netInteractionMap` constructs a network array of **3** `BitSet256` elements. The large `_512` getter constructs **6**. Native `_OnInteractionMapChanged` at `0x180B218F0` multiplies that array length by **85** (`0x55`) for its actual capacity check, indexes elements by cell/85, and decodes three bits per cell. Actual capacities are therefore **255** and **510**, not a safe 400 cells in the ordinary variant.
 

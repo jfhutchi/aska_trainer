@@ -1,4 +1,4 @@
-# HutchASKA 0.1.4 development candidate acceptance
+# HutchASKA 0.1.5 development candidate acceptance
 
 Date: 2026-09-14. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
 
@@ -24,8 +24,8 @@ The installed game still matches the original build target. A future update requ
 
 | Check | Result |
 | --- | --- |
-| Release core test suite | PASS: 164 tests, zero failures/skips |
-| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.4 |
+| Release core test suite | PASS: 175 tests, zero failures/skips |
+| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.5 |
 | Managed IMGUI unstripping regression | PASS: 78 reachable methods contain no unstripping failure stubs. Native 0.1.3 Close retest pending |
 | Red/green development | Core scaffold, registry, guard/breaker, settings, catalog, tribe contracts and rescan/reset tests were run failing before implementation and passing after |
 | Runtime isolation | Pure tests cover unknown/multiplayer block, session loss, partial enable, bounded failure and explicit cleanup retry |
@@ -39,9 +39,16 @@ The installed game still matches the original build target. A future update requ
 | Dependency notices | Actual assembly/package versions checked against linked upstream licenses; runtime texts included |
 | Public CI | Configured for pure core; no remote CI run or gameplay result claimed |
 
-Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.4.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
+Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.5.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
 
 ## Startup evidence
+
+The 0.1.4 runtime failed movement acceptance, exposed Build Speed's ambiguous
+property probe and crashed while extending a 20-tile leveling preview. Version
+0.1.5 fixes the two guards/probes and withdraws expanded leveling. The user
+confirmed Instant Summon in 0.1.3; axe logs show 4x application in 0.1.4. These
+observations do not validate the other controls. Current correction and retest:
+[0.1.5 evidence](0.1.5-corrective-retest.md).
 
 Version 0.1.3 loaded, but the user reports no movement-speed effect and no
 acceleration of tool harvesting. Those are failed gameplay checks. Version
@@ -75,7 +82,7 @@ Use a backed-up/disposable single-player save. Record actual versions, enable/di
 | Movement | MANUAL VERIFICATION REQUIRED: 1x-5x, native modifiers preserved, disable/reset/preset changes, death/reload/scene transition cleanup |
 | Harvesting | MANUAL VERIFICATION REQUIRED: 1x/2x/3x/4x hand-gather and tool-harvest cycles, cancellation, amount per completion, combat/movement unaffected, 1x/reset/disable and FPS |
 | Build Speed | MANUAL VERIFICATION REQUIRED: 1x/2x/3x/4x work per stroke, supplied and free-material cases, native costs and completion, cancellation/reset |
-| Terrain Leveling | MANUAL VERIFICATION REQUIRED: new plans up to 20x20 tiles, per-axis limits, correct preview center, capacity fallback, cancel/disable and save/reload |
+| Terrain Leveling | WITHDRAWN: 20-tile preview crashed while extending second side. 10x10 not tried. No enlargement hooks in 0.1.5; normal leveling only |
 | Infinite Fuel | MANUAL VERIFICATION REQUIRED: campfire and standing torch fuel drain, initial fuel/ignition, normal refueling/extinguishing/weather, disable and persistence |
 | World freeze | MANUAL VERIFICATION REQUIRED: native clock pauses/resumes; original stopped state preserved; unload safely handled |
 | Global game speed | MANUAL VERIFICATION REQUIRED: all presets, non-unit baseline, native pause/resume and Reset All without forced unpause |

@@ -4,6 +4,13 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.5 development candidate
+
+- Corrected movement's inverted native player-input permission check. Actual 0.1.4 diagnostics showed normal local commands were all rejected; native PlayerDrive requires hasExternalControl=true, while target matching clears it. Added regression cases for normal input and scripted/special movement exclusions.
+- Corrected Build Speed's ambiguous Agent property lookup using declared session properties; the base session exposes another Agent property with a different return type.
+- Withdrew expanded terrain leveling after a native crash while drawing the second side of a 20-tile preview. Removed the placement hooks and preset buttons; the remaining control explains that normal leveling must be used. 10x10 was not attempted and smaller expanded sizes are not claimed safe.
+- Recorded user-confirmed Instant Summon behavior in 0.1.3 and actual 0.1.4 axe-harvest animation application. Movement and Build Speed need a new gameplay check.
+
 ### Changed in 0.1.4 development candidate
 
 - Corrected movement's unhandled velocity path using a private, temporary movement-settings copy; retained complementary horizontal animation movement and native slopes/platforms/collisions.

@@ -30,21 +30,7 @@ internal sealed class CraftingTab(FeatureControls controls, BuildSpeedFeature bu
         GUILayout.Label("Increases construction work per hammer stroke. Material requirements are controlled by Free Building.");
         if (feature.StatusReason is { } reason) GUILayout.Label(reason);
         var terrainFeature = controls.Get("player.terrain");
-        GUILayout.Label($"Terrain Leveling Area: up to {terrain.Size.Value}x{terrain.Size.Value} grid tiles [{terrainFeature.State}]");
-        GUI.enabled = previous && controls.CanChange(terrainFeature);
-        GUILayout.BeginHorizontal();
-        try
-        {
-            foreach (var size in new[] { 5, 10, 15, 20 })
-                if (GUILayout.Button(size == 5 ? "5x5 / Normal" : $"{size}x{size}"))
-                {
-                    terrain.Size.Value = size;
-                    config.TerrainSize.Value = size;
-                    controls.Set(terrainFeature, size != 5);
-                }
-        }
-        finally { GUILayout.EndHorizontal(); GUI.enabled = previous; }
-        GUILayout.Label("Reopen leveling after changing size, then select the area normally. Leveling work is still required.");
+        GUILayout.Label($"{terrain.DisplayName}: normal game area [{terrainFeature.State}]");
         if (terrainFeature.StatusReason is { } terrainReason) GUILayout.Label(terrainReason);
     }
 }

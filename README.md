@@ -6,7 +6,7 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-**Version `0.1.4` is a development candidate, not a gameplay-validated v1 release.** It corrects the missed velocity movement path and the guard that excluded normal axe/pickaxe harvesting. It implements Free Building, Free Repairs, build-speed presets, larger terrain-leveling plans and fuel protection for campfires/standing torches. Gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. Freeze Aging remains unavailable with an explicit reason. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
+**Version `0.1.5` is a development candidate, not a gameplay-validated v1 release.** The 0.1.4 retest exposed an inverted movement permission check, a Build Speed startup lookup error and a native crash while expanding a 20-tile leveling preview. This update corrects the two checks and removes expanded-leveling hooks. Normal game leveling remains available; 10x10 and 15x15 were not validated. Freeze Aging and expanded leveling are unavailable. Gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
 
 The user reported approximately 115 FPS and supplied readable screenshots for 0.1.2 after the earlier readability/performance repair. That observation does not validate the new controls or their FPS impact. See the [0.1.3 retest](docs/testing/movement-harvest-close-retest.md), [release checklist](docs/testing/v1-release-checklist.md), [earlier repair evidence](docs/testing/readability-performance-repair.md) and [implementation ledger](docs/testing/implementation-status.md).
 
@@ -40,7 +40,7 @@ Implemented controls compile against current local interop signatures and are **
 | --- | --- |
 | Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x and player harvesting presets 1x/2x/3x/4x. Native retests pending |
 | Items | Implemented: runtime catalog/search, native Give Item/Give Stack, durability protection for carried equipment, spoilage protection for carried non-equipment, and retaining local consumables after their normal use effects |
-| Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs, player construction work presets 1x/2x/3x/4x and new terrain-leveling plans up to 5x5/10x10/15x15/20x20 grid tiles |
+| Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs and player construction work presets 1x/2x/3x/4x. Expanded leveling is disabled after the 0.1.4 preview crash |
 | World | Implemented: Freeze Time, -1/+1 hour, separate game-speed presets 0.5x/1x/2x/5x and Infinite Fuel for campfires/standing torches. Backward time adjustment cannot cross midnight |
 | Tribe | Implemented: current owned-villager damage suppression and cooling/frost protection; independent food/water/energy/rest/happiness maintenance in one shared pass; Heal Entire Tribe; Restore All Needs. Freeze Aging remains Incompatible |
 | Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. Warmth is read-only; age is unavailable |
@@ -56,7 +56,9 @@ All enabled tribe needs share one update every half second. The batch resolves c
 
 Free Building waives material checks for eligible current construction parts while keeping native work, layers and completion. Disabling rechecks actual supplies; completed work is retained. Free Repairs allows the normal repair-work phase without additional supplies. Any already deposited materials remain committed, and disabling does not revoke a repair phase already granted. Build Speed increases work per player hammer stroke, independently of material requirements.
 
-Terrain presets limit each side of a new leveling plan in grid tiles, not meters. Reopen leveling after changing the size. The 20x20 setting uses ASKA's larger native grid storage; if that matching template is unavailable, the normal grid is limited to 15x15 and the UI explains why. Existing plans are not resized and normal leveling work remains required. Infinite Fuel prevents fuel drain on owned campfires and standing torches; add starting fuel and light them normally. It does not refill or ignite an empty fire.
+Expanded-leveling presets are unavailable in 0.1.5: the implementation contains no terrain hooks and cannot activate from saved configuration or rescan. The normal leveling tool is unchanged. The user's 20-tile preview crashed while extending the second side; 10x10 was not attempted. See the [0.1.5 corrective retest](docs/testing/0.1.5-corrective-retest.md).
+
+Infinite Fuel prevents fuel drain on owned campfires and standing torches; add starting fuel and light them normally. It does not refill or ignite an empty fire.
 
 ## Requirements
 
@@ -113,7 +115,7 @@ Create a local development candidate with PowerShell 7:
 .\scripts\Package-Release.ps1
 ```
 
-Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.4.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.5.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
 
 Repository-relative research/checklist links in the packaged README refer to the matching source checkout identified in BUILDINFO; those source documents are not duplicated in the ZIP.
 
@@ -171,7 +173,7 @@ Full exceptions belong in the local `ASKA\BepInEx\LogOutput.log`; the UI should 
 ## Known Limitations
 
 - Plugin startup was observed and all stages build locally, but gameplay has not passed the in-game smoke matrix. The generated ZIP is a development candidate only.
-- Freeze Aging remains Incompatible because ordinary-villager aging has not been established. Age and warmth editing remain unavailable. New native controls require live acceptance on the recorded ASKA build; see the supported scopes above.
+- Expanded leveling is unavailable after a native preview crash; all enlargement hooks are removed. Freeze Aging remains Incompatible because ordinary-villager aging has not been established. Age and warmth editing remain unavailable. New native controls require live acceptance on the recorded ASKA build; see the supported scopes above.
 - Startup and detected versions do not establish gameplay compatibility. F8/input/cursor behavior, real single-player/co-op gates, pause/transition restoration, item initialization/save persistence and tribe membership/edit persistence require manual acceptance.
 - Multiplayer/co-op, network manipulation, achievement modification, DRM/access-control bypass, and external memory trainers are outside scope.
 - Exact game hooks require local assembly inspection; research notes alone do not verify every signature.

@@ -77,6 +77,42 @@ specific root-motion ratio and callback/guard outcomes on the user's character
 were not logged in 0.1.3; bounded diagnostics now expose those values instead of
 assuming which one applied.
 
+## The 0.1.4 retest and inverted input permission
+
+The user's 0.1.4 log showed approximately `commands all/local/boosted=150/150/0`
+per five-second window, `rootRatio=0`, native desired horizontal motion around
+4.325 or 7, and every otherwise eligible command rejected by blocker index 7
+(`hasExternalControl`). This confirms native hook dispatch and local identity
+work, and isolates the rejection before any private speed override is applied.
+
+Native control-flow inspection establishes that the field's name was misread:
+
+- `CharacterMovement` initializes `hasExternalControl` to true in its constructor
+  (write at RVA `0x1245420`).
+- `PlayerDrive.FixedUpdate` zeroes EDI, then compares the movement flag against
+  zero at RVA `0x12597C6`. If false, it skips the ordinary player movement branch.
+  If true, it calls `SendMovementCommand`, which calls `MoveCommand` at
+  RVA `0x125AD91`. The flag grants control to the player input driver; it does not
+  mean a scripted controller is currently moving the player.
+- `PlayerInteractionAgent.FixedUpdate` clears the flag while target matching is
+  active (RVA `0xD33311`). `_UpdateMatchTarget` also clears it while positioning
+  the character (`0xD38A12`) and restores true on completion/failure
+  (`0xD3907D`, `0xD39124`). `AbortMatchTarget` restores true (`0xD3283A`).
+
+The guard now **requires** that native player-input permission instead of
+rejecting it. The flag is never written by the trainer. Scripted target matching
+therefore remains excluded, including when previous movement input is nonzero.
+Grounding, raven, swim, climb, slide, cart, rowing and nonzero-input checks remain
+in effect for both the command-speed and animation-displacement paths.
+
+The shared Core eligibility predicate has eleven regression cases: the actual
+grounded/player-permitted retest state, target matching with stale movement input,
+the seven special-state exclusions, idle input and invalid input. Parent integration
+owns test/build execution for this correction; this worker did not change versions,
+install a build or run the game. The next log should show nonzero boosted command
+counts during ordinary walking and `native/appliedSpeed` reflecting the multiplier.
+Visible travel still requires the next live retest.
+
 ## Corrected implementation
 
 An eligible local `MoveCommand` now temporarily receives a privately instantiated
@@ -122,7 +158,7 @@ does not mutate shared MovementStats assets,
 attributes, animation speed, or global game time.
 
 Boost applies only to grounded on-foot movement with nonzero movement input. Raven,
-swimming, climbing, sliding, carting, rowing, and externally controlled motion are
+swimming, climbing, sliding, carting, rowing, and scripted target matching are
 excluded. This intentionally limits the slider to walking/running rather than
 changing jump trajectories, vehicles, or scripted movement. Combat/action animation
 overlap with movement input needs manual observation.
@@ -171,7 +207,7 @@ The extra command/root-consumption observations stop after the twelfth report.
   movement eligibility and actual nonzero animation displacement.
 - `native/appliedSpeed`, `rootRatio` and `desiredXZ` record native speed input,
   chosen boosted input, blend share and final native desired movement magnitude.
-- `blocked air/raven/swim/climb/slide/cart/row/external/idle` counts the first
+- `blocked air/raven/swim/climb/slide/cart/row/inputDisabled/idle` counts the first
   blocking condition for each local command. Input comes from the current command
   argument, not the previous command's cached `lastRawMovement`.
 - `root native/added/queued` and `apply` show root-motion production and how much

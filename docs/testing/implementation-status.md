@@ -61,6 +61,14 @@ Input lifecycle review fixes landed with the native Give Item task in 4d525a3 af
 
 ## Remaining external acceptance
 
+Version 0.1.5 responds to actual 0.1.4 failures: normal movement was blocked by
+an inverted player-input permission check; Build Speed had a shadowed-property
+lookup error; the 20-tile leveling preview crashed while extending its second
+side. The checks are corrected and all terrain enlargement hooks are withdrawn.
+175 core tests and the local build pass; compiled terrain containment was
+inspected. Movement/build-speed gameplay retesting is still required. The user
+confirmed Instant Summon in 0.1.3. See [0.1.5 evidence](0.1.5-corrective-retest.md).
+
 Version 0.1.4 addresses the user's failed 0.1.3 movement and tool-harvest tests
 with native velocity-path scaling and positive harvest-action guards. It adds
 Free Building, Free Repairs, build-work presets, terrain plans up to 20x20 grid

@@ -76,11 +76,12 @@ internal sealed class MovementSpeedFeature(IPlayerContext players) : NativeFeatu
 
     private bool CanScale(CharacterMovement movement, Vector2 input, bool recordBlock = false)
     {
-        var blocked = !movement.isGrounded ? 0 : movement.isRaven ? 1 : movement.IsSwimming ? 2
-            : movement.IsClimbing ? 3 : movement.IsSliding ? 4 : movement.isCarting ? 5
-            : movement.isRowing ? 6 : movement.hasExternalControl ? 7 : input.sqrMagnitude <= 0 ? 8 : -1;
-        if (blocked < 0) return true;
-        if (recordBlock && DiagnosticsActive) blockedStates[blocked]++;
+        // Native PlayerDrive requires this permission; target matching clears it to suppress player input.
+        var blocked = MovementEligibility.GetBlockReason(movement.isGrounded, movement.isRaven, movement.IsSwimming,
+            movement.IsClimbing, movement.IsSliding, movement.isCarting, movement.isRowing,
+            movement.hasExternalControl, input.sqrMagnitude);
+        if (blocked == MovementBlockReason.None) return true;
+        if (recordBlock && DiagnosticsActive) blockedStates[(int)blocked]++;
         return false;
     }
 
@@ -251,7 +252,7 @@ internal sealed class MovementSpeedFeature(IPlayerContext players) : NativeFeatu
             + $"animator all/local/eligible/nonzero={animatorCalls}/{localAnimatorCalls}/{eligibleAnimatorCalls}/{scaledSamples}; "
             + $"root native/added/queued={nativeRootDistance:0.000}/{addedRootDistance:0.000}/{consumedRootDistance:0.000}; apply={applyCalls}; "
             + $"rootRatio={lastRootRatio:0.000}; native/appliedSpeed={lastNativeSpeed:0.000}/{lastAppliedSpeed:0.000}; desiredXZ={lastDesiredSpeed:0.000}; "
-            + $"blocked air/raven/swim/climb/slide/cart/row/external/idle={string.Join("/", blockedStates)}");
+            + $"blocked air/raven/swim/climb/slide/cart/row/inputDisabled/idle={string.Join("/", blockedStates)}");
         ResetCounters();
         nextReport = Stopwatch.GetTimestamp() + Stopwatch.Frequency * 5;
     }
