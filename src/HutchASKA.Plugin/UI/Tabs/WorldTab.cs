@@ -4,19 +4,25 @@ using UnityEngine;
 
 namespace HutchASKA.Plugin.UI.Tabs;
 
-internal sealed class WorldTab(FeatureControls controls, GameSpeedFeature speed, RuntimeConfiguration config)
+internal sealed class WorldTab(FeatureControls controls, GameSpeedFeature speed, TimeStepFeature timeStep, RuntimeConfiguration config)
 {
+    private string? timeMessage;
+    public void Clear() => timeMessage = null;
     internal void Draw()
     {
         controls.Toggle("world.freeze");
         var previous = GUI.enabled;
-        GUI.enabled = false;
+        GUI.enabled = previous && controls.CanChange(controls.Get("world.hour"));
         GUILayout.BeginHorizontal();
-        GUILayout.Button("-1 Hour");
-        GUILayout.Button("+1 Hour");
+        if (GUILayout.Button("-1 Hour"))
+            timeMessage = timeStep.TryAdjust(-1, out var error) ? "Clock moved back one hour." : error;
+        if (GUILayout.Button("+1 Hour"))
+            timeMessage = timeStep.TryAdjust(1, out var error) ? "Clock moved forward one hour." : error;
         GUILayout.EndHorizontal();
         GUI.enabled = previous;
-        GUILayout.Label(controls.Get("world.hour").StatusReason);
+        if (controls.Get("world.hour").StatusReason is { } timeReason) GUILayout.Label(timeReason);
+        if (timeMessage is not null) GUILayout.Label(timeMessage);
+        GUILayout.Label("Changes the world clock; does not simulate an hour of work. Moving backward across midnight is unavailable.");
         var feature = controls.Get("world.speed");
         GUILayout.Label($"Game Speed: {speed.Multiplier.Value:0.0}x [{feature.State}]");
         GUI.enabled = previous && controls.CanChange(feature);

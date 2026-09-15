@@ -4,33 +4,21 @@ using HutchASKA.Plugin.Infrastructure;
 
 namespace HutchASKA.Plugin.Tribe;
 
-internal sealed class TribeNeedsFeature(ITribeContext tribe, string id, string name, VillagerEditRequest request)
+internal sealed class TribeNeedsFeature(TribeNeedsCoordinator coordinator, string id, string name, VillagerEditRequest request)
     : NativeFeature(id, name)
 {
-    private long nextPass;
     public override CompatibilityResult ProbeCompatibility() => AskaTribeContext.ProbeCompatibility();
+    public override bool TryEnable()
+    {
+        coordinator.Enable(Id, request);
+        return base.TryEnable();
+    }
     public override void Tick()
     {
-        var now = Environment.TickCount64;
-        if (now < nextPass) return;
-        nextPass = now + 500;
-        var ids = tribe.GetCurrentVillagerIds();
-        StatusReason = (tribe as ITribeContextStatus)?.LastError;
-        foreach (var id in ids)
-        {
-            if (tribe.TryApply(id, request, out var error)) continue;
-            StatusReason = error;
-            if ((tribe as ITribeContextStatus)?.HasNativeFailure == true)
-                throw new InvalidOperationException(error);
-            return;
-        }
+        coordinator.Tick();
+        StatusReason = coordinator.LastError;
     }
-    public override void Disable() { nextPass = 0; base.Disable(); }
-}
-
-internal sealed class TribeUnavailableFeature(string id, string name, string reason) : NativeFeature(id, name)
-{
-    public override CompatibilityResult ProbeCompatibility() => CompatibilityResult.Incompatible(reason);
+    public override void Disable() { coordinator.Disable(Id); base.Disable(); }
 }
 
 internal sealed class TribeRestoreFeature(ITribeContext tribe, bool heal)
@@ -43,20 +31,8 @@ internal sealed class TribeRestoreFeature(ITribeContext tribe, bool heal)
         string? operationError = null;
         var success = RunOnce(() =>
         {
-            var ids = tribe.GetCurrentVillagerIds();
-            if ((tribe as ITribeContextStatus)?.LastError is { } unavailable) { operationError = unavailable; return; }
-            foreach (var id in ids)
-            {
-                var applied = heal ? tribe.TryHeal(id, out operationError)
-                    : tribe.TryApply(id, TribeNeedRequests.RestoreAll, out operationError);
-                if (!applied)
-                {
-                    operationError = $"Updated {affected} villager(s) before stopping: {operationError}";
-                    if ((tribe as ITribeContextStatus)?.HasNativeFailure == true) throw new InvalidOperationException(operationError);
-                    return;
-                }
-                affected++;
-            }
+            tribe.TryApplyAll(heal ? new(HealthFraction: 1) : TribeNeedRequests.RestoreAll, out affected, out operationError);
+            if ((tribe as ITribeContextStatus)?.HasNativeFailure == true) throw new InvalidOperationException(operationError);
         }, out error);
         count = affected;
         error ??= operationError;

@@ -45,12 +45,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         try
         {
             var villager = Resolve(stableId);
-            var survival = villager.GetSurvival();
-            if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
-            snapshot = new(stableId, villager.GetName() ?? stableId,
-                Fraction(villager._healthVAttr, villager.MaxHealth), Fraction(survival._foodVAttr),
-                Fraction(survival._waterVAttr), Fraction(survival._warmthVAttr), Fraction(survival._energyVAttr),
-                Fraction(survival._restVariableAttribute), Fraction(villager._happinessVAttr, villager.HappinessCap), null);
+            snapshot = ReadSnapshot(villager, stableId);
             error = LastError = null; HasNativeFailure = false;
             return true;
         }
@@ -63,30 +58,8 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         catch (ArgumentOutOfRangeException failure) { error = failure.Message; return false; }
         try
         {
-            if (request.Age is not null) throw new TribeUnavailableException(AgeUnavailable);
-            if (request.WarmthFraction is not null) throw new TribeUnavailableException(WarmthUnavailable);
             var villager = Resolve(stableId);
-            if (request.IsEmpty) { error = null; return true; }
-            // Validate every requested native range before making the first write.
-            var writes = new List<(VariableAttribute Attribute, float Value)>();
-            if (request.HealthFraction is not null) Add(writes, villager._healthVAttr, request.HealthFraction, villager.MaxHealth);
-            if (request.HappinessFraction is not null) Add(writes, villager._happinessVAttr, request.HappinessFraction, villager.HappinessCap);
-            if (request.FoodFraction is not null || request.WaterFraction is not null || request.EnergyFraction is not null || request.RestFraction is not null)
-            {
-                var survival = villager.GetSurvival();
-                if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
-                if (request.FoodFraction is not null) Add(writes, survival._foodVAttr, request.FoodFraction);
-                if (request.WaterFraction is not null) Add(writes, survival._waterVAttr, request.WaterFraction);
-                if (request.EnergyFraction is not null) Add(writes, survival._energyVAttr, request.EnergyFraction);
-                if (request.RestFraction is not null) Add(writes, survival._restVariableAttribute, request.RestFraction);
-            }
-            foreach (var write in writes)
-            {
-                RequireSession();
-                if (!villager || villager.IsDead || !villager.HasAuthority)
-                    throw new TribeUnavailableException("Villager became unavailable during editing; some earlier fields may have applied.");
-                write.Attribute.SetValue(write.Value);
-            }
+            ApplyTo(villager, request);
             error = LastError = null; HasNativeFailure = false;
             return true;
         }
@@ -95,16 +68,101 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
 
     public bool TryHeal(string stableId, out string? error) => TryApply(stableId, new(HealthFraction: 1), out error);
 
+    public bool TryApplyAll(VillagerEditRequest request, out int count, out string? error)
+    {
+        count = 0;
+        try { request = request.Clamp(); }
+        catch (ArgumentOutOfRangeException failure) { error = failure.Message; return false; }
+        try
+        {
+            // One population snapshot per synchronous batch; each write rechecks live membership.
+            foreach (var villager in ResolvePopulation().Values)
+            {
+                ApplyTo(villager, request);
+                count++;
+            }
+            error = LastError = null; HasNativeFailure = false;
+            return true;
+        }
+        catch (TribeUnavailableException failure)
+        {
+            error = $"Updated {count} villager(s) before stopping: {failure.Message}";
+            Unavailable(failure);
+            return false;
+        }
+    }
+
+    public bool TrySnapshotAll(out IReadOnlyList<VillagerSnapshot> snapshots, out string? error)
+    {
+        snapshots = Array.Empty<VillagerSnapshot>();
+        try
+        {
+            var result = new List<VillagerSnapshot>();
+            foreach (var pair in ResolvePopulation())
+                result.Add(ReadSnapshot(pair.Value, pair.Key));
+            snapshots = result;
+            error = LastError = null; HasNativeFailure = false;
+            return true;
+        }
+        catch (TribeUnavailableException failure) { error = failure.Message; Unavailable(failure); return false; }
+    }
+
+    private VillagerSnapshot ReadSnapshot(Villager villager, string stableId)
+    {
+        if (!IsCurrentVillager(villager)) throw new TribeUnavailableException("Villager is no longer owned and available.");
+        var survival = villager.GetSurvival();
+        if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
+        return new(stableId, villager.GetName() ?? stableId,
+            Fraction(villager._healthVAttr, villager.MaxHealth), Fraction(survival._foodVAttr),
+            Fraction(survival._waterVAttr), Fraction(survival._warmthVAttr), Fraction(survival._energyVAttr),
+            Fraction(survival._restVariableAttribute), Fraction(villager._happinessVAttr, villager.HappinessCap), null);
+    }
+
+    private void ApplyTo(Villager villager, VillagerEditRequest request)
+    {
+        if (request.Age is not null) throw new TribeUnavailableException(AgeUnavailable);
+        if (request.WarmthFraction is not null) throw new TribeUnavailableException(WarmthUnavailable);
+        if (!IsCurrentVillager(villager)) throw new TribeUnavailableException("Villager is no longer owned and available.");
+        // Validate every requested range before the first write; unrelated attributes are not read.
+        var writes = new List<(VariableAttribute Attribute, float Value)>();
+        if (request.HealthFraction is not null) Add(writes, villager._healthVAttr, request.HealthFraction, villager.MaxHealth);
+        if (request.HappinessFraction is not null) Add(writes, villager._happinessVAttr, request.HappinessFraction, villager.HappinessCap);
+        if (request.FoodFraction is not null || request.WaterFraction is not null || request.EnergyFraction is not null || request.RestFraction is not null)
+        {
+            var survival = villager.GetSurvival();
+            if (!survival) throw new TribeUnavailableException("Villager survival is unavailable.");
+            if (request.FoodFraction is not null) Add(writes, survival._foodVAttr, request.FoodFraction);
+            if (request.WaterFraction is not null) Add(writes, survival._waterVAttr, request.WaterFraction);
+            if (request.EnergyFraction is not null) Add(writes, survival._energyVAttr, request.EnergyFraction);
+            if (request.RestFraction is not null) Add(writes, survival._restVariableAttribute, request.RestFraction);
+        }
+        foreach (var write in writes)
+        {
+            if (!IsCurrentVillager(villager))
+                throw new TribeUnavailableException("Villager became unavailable during editing; earlier fields may have applied.");
+            if (write.Attribute.GetValue() != write.Value) write.Attribute.SetValue(write.Value);
+        }
+    }
+
     public bool IsCurrentVillager(object candidate)
     {
         try
         {
             var villager = candidate is Il2CppObjectBase native ? native.TryCast<Villager>() : null;
             if (!villager) return false;
-            var id = villager!.GetGuid();
-            return !string.IsNullOrWhiteSpace(id) && ResolvePopulation().TryGetValue(id, out var current) && current == villager;
+            RequireSession();
+            if (nativeFault is not null) throw new InvalidOperationException(nativeFault);
+            if (!players.TryGetLocalPlayer(out var player)) return false;
+            var population = GameObjectResolver.FindUnique<PopulationManager>();
+            var settlement = GameObjectResolver.FindUnique<Settlement>();
+            if (!population || population!.IsLoading || !settlement) return false;
+            // Exact native identity needs no GUID dictionary: duplicates cannot redirect this target.
+            return !villager!.IsDead && villager.HasAuthority && villager.teamId == player!.TeamId
+                && !villager._guestStation && villager.GetSettlement() == settlement
+                && population.GetPopulation()?.Contains(villager) == true;
         }
         catch (TribeUnavailableException error) { Unavailable(error); return false; }
+        catch (Exception error) { Fault(error); throw; }
     }
 
     private Villager Resolve(string id) => ResolvePopulation().TryGetValue(id, out var villager)

@@ -29,9 +29,3 @@ internal sealed class SurvivalFeatureSet(IPlayerContext players, bool food)
         VariableAttributeController.Fill(attribute);
     }
 }
-
-internal sealed class TemperatureImmunityFeature() : NativeFeature("player.temperature", "Temperature Immunity")
-{
-    public override CompatibilityResult ProbeCompatibility() => CompatibilityResult.Incompatible(
-        "Safe warmth range has not been confirmed in this ASKA build; no temperature changes are applied.");
-}

@@ -9,4 +9,6 @@ internal interface ITribeContext
     bool TryApply(string stableId, VillagerEditRequest request, out string? error);
     bool TryHeal(string stableId, out string? error);
     bool IsCurrentVillager(object candidate);
+    bool TryApplyAll(VillagerEditRequest request, out int count, out string? error);
+    bool TrySnapshotAll(out IReadOnlyList<VillagerSnapshot> snapshots, out string? error);
 }

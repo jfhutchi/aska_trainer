@@ -1,5 +1,16 @@
 # ASKA Interop Observations — 2026-09-14
 
+## Later native implementation evidence (0.1.3)
+
+This file preserves the earlier generated-wrapper inspection history. Its old
+Incompatible decisions for movement, temperature, item loss/use, time stepping,
+crafting and recruitment are superseded by the native investigations linked in
+the [current roadmap](disabled-options-roadmap.md). In particular,
+[time-step-native-audit.md](time-step-native-audit.md) establishes hour units and
+the backward-midnight limitation; [item decay](2026-09-14-item-decay-native-flow.md)
+corrects ExpirationProcess to seasonal availability rather than food freshness.
+These new implementations still require gameplay acceptance.
+
 ## Stage 2 context validation (2026-09-14)
 
 ### Trainer input and lifecycle validation

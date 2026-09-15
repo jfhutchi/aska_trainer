@@ -28,6 +28,19 @@ public sealed class FeatureRegistryTests
         Assert.Equal(FeatureState.Disabled, god.State);
     }
 
+    [Fact]
+    public void ReusedSnapshotCannotBeMutatedByCaller()
+    {
+        var registry = new FeatureRegistry();
+        var feature = new FakeFeature("food");
+        registry.Register(feature);
+        var snapshot = registry.Snapshot();
+        var mutable = Assert.IsAssignableFrom<IList<ITrainerFeature>>(snapshot);
+        Assert.Throws<NotSupportedException>(() => mutable[0] = new FakeFeature("water"));
+        Assert.Same(snapshot, registry.Snapshot());
+        Assert.Same(feature, registry.Snapshot()[0]);
+    }
+
     private sealed class FakeFeature(string id) : ITrainerFeature
     {
         public string Id => id;

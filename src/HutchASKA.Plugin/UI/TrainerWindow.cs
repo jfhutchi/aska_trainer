@@ -28,18 +28,18 @@ internal sealed class TrainerWindow
     private Rect bounds = new(20, 20, 960, 620);
     private Vector2 scroll;
     private int selectedTab;
-    private bool open;
+    private bool closeRequested;
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
-        MovementSpeedFeature movement, GameSpeedFeature speed, AskaItemCatalog catalog, GiveItemFeature give,
+        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, AskaItemCatalog catalog, GiveItemFeature give,
         VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe,
         DiagnosticsService diagnosticsService, Action<Exception> reportRenderError)
     {
         this.guard = guard;
         renderGuard = new CallbackGuard(reportRenderError);
         var controls = new FeatureControls(host, guard, config);
-        playerTab = new PlayerTab(controls, movement, config);
-        worldTab = new WorldTab(controls, speed, config);
+        playerTab = new PlayerTab(controls, movement, harvesting, config);
+        worldTab = new WorldTab(controls, speed, timeStep, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls);
         tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe);
@@ -51,14 +51,15 @@ internal sealed class TrainerWindow
 
     public bool Draw()
     {
-        return renderGuard.TryRun(DrawWindow) && open;
+        return renderGuard.TryRun(DrawWindow) && !closeRequested;
     }
+
+    public void Open() => closeRequested = false;
 
     public bool CanDraw => !renderGuard.IsFaulted;
 
     private void DrawWindow()
     {
-        open = true;
         bounds.width = Mathf.Min(960, Screen.width - 20);
         bounds.height = Mathf.Min(620, Screen.height - 20);
         bounds.x = Mathf.Clamp(bounds.x, 0, Mathf.Max(0, Screen.width - bounds.width));
@@ -96,7 +97,7 @@ internal sealed class TrainerWindow
         if (!guard.Decision.Allowed) { itemsTab.Clear(); tribeTab.Clear(); }
     }
 
-    private void ClearTransientState() { itemsTab.Clear(); tribeTab.Clear(); advanced.Clear(); }
+    private void ClearTransientState() { itemsTab.Clear(); tribeTab.Clear(); worldTab.Clear(); advanced.Clear(); }
 
     private void DrawContents(int id)
     {
@@ -111,6 +112,10 @@ internal sealed class TrainerWindow
 
     private void DrawContentsCore()
     {
+        // Draw the footer before entering any scroll/layout group so its hit target is stable.
+        GUI.enabled = true;
+        if (GUI.Button(new Rect(14, bounds.height - 48, bounds.width - 28, 34), "Close"))
+            closeRequested = true;
         GUILayout.BeginVertical();
         try
         {
@@ -129,7 +134,7 @@ internal sealed class TrainerWindow
                 else GUILayout.Label("This module is planned for a later stage.");
             }
             finally { GUILayout.EndScrollView(); }
-            if (GUILayout.Button("Close")) open = false;
+            GUILayout.Space(42);
         }
         finally { GUILayout.EndVertical(); }
         GUI.DragWindow(new Rect(0, 0, bounds.width, 32));

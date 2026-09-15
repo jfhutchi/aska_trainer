@@ -29,18 +29,8 @@ internal sealed class VillagerEditorService(ITribeContext tribe) : NativeActionF
 
     public bool TryList(out IReadOnlyList<VillagerSnapshot> snapshots, out string? error)
     {
-        var result = new List<VillagerSnapshot>();
-        var success = Execute(() =>
-        {
-            var ids = tribe.GetCurrentVillagerIds();
-            if (ContextError is { } unavailable) return (false, unavailable);
-            foreach (var id in ids)
-            {
-                if (!tribe.TrySnapshot(id, out var snapshot, out var reason)) return (false, reason);
-                if (snapshot is not null) result.Add(snapshot);
-            }
-            return (true, null);
-        }, out error);
+        IReadOnlyList<VillagerSnapshot> result = Array.Empty<VillagerSnapshot>();
+        var success = Execute(() => (tribe.TrySnapshotAll(out result, out var reason), reason), out error);
         snapshots = success ? result : Array.Empty<VillagerSnapshot>();
         return success;
     }

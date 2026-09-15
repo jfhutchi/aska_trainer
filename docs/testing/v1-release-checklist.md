@@ -1,4 +1,4 @@
-# HutchASKA 0.1.2 development candidate acceptance
+# HutchASKA 0.1.3 development candidate acceptance
 
 Date: 2026-09-14. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
 
@@ -24,12 +24,12 @@ The installed game still matches the original build target. A future update requ
 
 | Check | Result |
 | --- | --- |
-| Release core test suite | PASS: 69 tests, zero failures/skips |
-| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.2 |
-| Managed IMGUI unstripping regression | PASS: failed on both toolbar stubs before repair; 76 reachable methods pass after readability repair. Native rendering retest pending |
+| Release core test suite | PASS: 120 tests, zero failures/skips |
+| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.3 |
+| Managed IMGUI unstripping regression | PASS: 78 reachable methods contain no unstripping failure stubs. Native 0.1.3 Close retest pending |
 | Red/green development | Core scaffold, registry, guard/breaker, settings, catalog, tribe contracts and rescan/reset tests were run failing before implementation and passing after |
 | Runtime isolation | Pure tests cover unknown/multiplayer block, session loss, partial enable, bounded failure and explicit cleanup retry |
-| Native hook scope review | Local player/owned tribe damage only; verified stamina entry points; no shared inventory-removal, arbitrary spawn or achievement patches |
+| Native hook scope review | Current local player/owned tribe gates; narrow movement, harvest, temperature, item loss/use, crafting and recruitment callbacks; no arbitrary spawn or achievement patches. Consumable removal patch requires the exact armed use/item/container and passes all other removals through |
 | Git tracked DLL/EXE/assets/bundles | PASS: none |
 | Local paths/secrets in authored source | No local installation/user path, credentials, saves or raw game logs added |
 | Release archive generation | PASS: strict allowlist and authored assembly identity checks |
@@ -39,13 +39,13 @@ The installed game still matches the original build target. A future update requ
 | Dependency notices | Actual assembly/package versions checked against linked upstream licenses; runtime texts included |
 | Public CI | Configured for pure core; no remote CI run or gameplay result claimed |
 
-Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current archive is `artifacts/HutchASKA-v0.1.2.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
+Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.3.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
 
 ## Startup evidence
 
-The user subsequently confirmed 0.1.1 menu rendering by screenshot, but reported poor readability and approximately 10 FPS. Version 0.1.2 addresses these with a custom skin and lifecycle-invalidated discovery; native performance and appearance remain pending. See [repair evidence](readability-performance-repair.md).
+The user confirmed 0.1.1 menu rendering, but reported poor readability and approximately 10 FPS. Version 0.1.2's custom skin and lifecycle-invalidated discovery received readable screenshots and a user report of approximately 115 FPS. This is not a controlled benchmark. The 0.1.3 movement/Close repairs and expanded controls await a new game launch and gameplay test. See [0.1.3 retest](movement-harvest-close-retest.md).
 
-The following evidence is historical for 0.1.0. The user's subsequent menu interaction exposed a repeated toolbar unstripping exception. Version 0.1.1 removed that call path; the later user screenshot confirms the controls render. The current 0.1.2 retest is still pending. See [GUI repair evidence](gui-rendering-repair.md).
+The following evidence is historical for 0.1.0. The user's subsequent menu interaction exposed a repeated toolbar unstripping exception. Version 0.1.1 removed that call path; the later user screenshot confirms the controls render. See [GUI repair evidence](gui-rendering-repair.md).
 
 PASS: final combined Player/World/Items/Tribe/Diagnostics DLLs extracted from the candidate ZIP loaded through a fresh BepInEx startup. The log records HutchASKA 0.1.0, Steam build 25186770, application version 0.4, Unity 6000.3.12f1, BepInEx 6.0.0-be.755, IL2CPP behaviour registration, all 11 expected Incompatible controls and successful chainloader completion. Unknown session was blocked and no HutchASKA exception was observed. No F8 interaction or gameplay acceptance is claimed. Earlier Stage 1 and intermediate startups also passed.
 
@@ -66,6 +66,7 @@ Use a backed-up/disposable single-player save. Record actual versions, enable/di
 | Stamina | MANUAL VERIFICATION REQUIRED: relevant native actions do not drain local stamina; others unaffected; disable restores drain |
 | Player hunger/thirst | MANUAL VERIFICATION REQUIRED: each independent, finite native maxima, normal depletion after disable |
 | Movement | MANUAL VERIFICATION REQUIRED: 1x-5x, native modifiers preserved, disable/reset/preset changes, death/reload/scene transition cleanup |
+| Harvesting | MANUAL VERIFICATION REQUIRED: 1x/2x/3x/4x hand-gather and tool-harvest cycles, cancellation, amount per completion, combat/movement unaffected, 1x/reset/disable and FPS |
 | World freeze | MANUAL VERIFICATION REQUIRED: native clock pauses/resumes; original stopped state preserved; unload safely handled |
 | Global game speed | MANUAL VERIFICATION REQUIRED: all presets, non-unit baseline, native pause/resume and Reset All without forced unpause |
 | Item catalog | MANUAL VERIFICATION REQUIRED: runtime definitions, display/internal search, pages, selection clearing and explicit give target |
@@ -77,13 +78,14 @@ Use a backed-up/disposable single-player save. Record actual versions, enable/di
 | Villager editor | MANUAL VERIFICATION REQUIRED: stable selection, only changed fields applied, native ranges/caps, disappearance clears selection, persistence after reload |
 | Advanced / cleanup | MANUAL VERIFICATION REQUIRED: reload leaves cheats off, rescan causes no duplicate hooks, Reset All restores values and retries pending input cleanup, editors clear |
 | Runtime error isolation | MANUAL VERIFICATION REQUIRED: broken feature faults visibly without repeated native exceptions or disabling unrelated features |
-| Temperature (player/tribe) and warmth editing | Incompatible/read-only: safe native temperature behavior unverified |
-| -1/+1 hour | Incompatible: native units/day boundaries unverified |
-| Durability / freshness | Incompatible: loss-only interval/process semantics unverified; damaged-tool/perishable freeze/resume tests deferred |
-| Retain Items On Use | Incompatible: native effects versus use-only decrement/final-stack teardown unverified; multi-item tests deferred |
-| Free craft/build/repair | Incompatible: isolated requirements/consumption/completion chains unverified; native products/structures and persistence tests deferred |
-| Age editing / Freeze Aging | Unavailable/Incompatible: remaining lifetime is not verified chronological age or safe reversible aging control |
-| Instant normal recruitment | Incompatible: wait-only lifecycle/completion/rearm unverified; must later test two normal recruits, names/traits/AI/population/save and no runaway repetition |
+| Temperature (player/tribe) | MANUAL VERIFICATION REQUIRED: prevents further cooling/frost, preserves warming/thawing, current owned scope, disable. Existing freezing is not cured; warmth editing remains read-only |
+| -1/+1 hour | MANUAL VERIFICATION REQUIRED: same-day steps, native forward-midnight carry, backward-midnight rejection, freeze preserved, lighting/weather/events |
+| Durability / freshness | MANUAL VERIFICATION REQUIRED: partially worn tools/carried perishables preserve condition, independent toggles, normal decay after disable, repairs, equipment/drop/storage and save/reload |
+| Retain Consumables On Use | MANUAL VERIFICATION REQUIRED: native effects and animation, one-item/larger stacks, unrelated spending, disable and save/reload |
+| Ignore Crafting Materials | MANUAL VERIFICATION REQUIRED: zero materials, existing station/player materials unchanged, locked recipes and blueprint costs preserved, cancellation, native output, disable and persistence |
+| Free Building / Free Repairs | Incompatible: persistent supply container/stage restoration remains unresolved; native structure completion is not bypassed |
+| Age editing / Freeze Aging | Unavailable/Incompatible: inspected lifetime modifier is initialized for golems, not a confirmed ordinary-villager aging hook |
+| Instant normal recruitment | MANUAL VERIFICATION REQUIRED: two normal recruits, costs/names/traits/AI/population/save, owned settlement, disable and no runaway repetition |
 | Steam achievements | Source audit: no API manipulation; actual ASKA mod/achievement behavior is not guaranteed |
 
 Stage-specific procedures remain in [Stage 1](stage-1-smoke-test.md), [Stage 2](stage-2-smoke-test.md), [Stage 3](stage-3-smoke-test.md) and [Stage 4](stage-4-smoke-test.md). Current incompatible features fail closed as authorized; none are presented as working cheats. Manual checks and uncertain native hook semantics are the remaining external/runtime work.

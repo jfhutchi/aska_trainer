@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.2";
+    public const string PluginVersion = "0.1.3";
 
     public override void Load()
     {
@@ -36,42 +36,53 @@ public sealed class Plugin : BasePlugin
         stamina.Hosted = host.Register(stamina);
         host.Register(new SurvivalFeatureSet(Players, true));
         host.Register(new SurvivalFeatureSet(Players, false));
-        host.Register(new TemperatureImmunityFeature());
+        var temperature = new TemperatureImmunityFeature(Players);
+        temperature.Hosted = host.Register(temperature);
         var movement = new MovementSpeedFeature(Players);
-        host.Register(movement);
+        movement.Hosted = host.Register(movement);
+        var harvesting = new HarvestSpeedFeature(Players);
+        harvesting.Hosted = host.Register(harvesting);
         host.Register(new WorldTimeFeature(World));
-        host.Register(new TimeStepFeature());
+        var timeStep = new TimeStepFeature(World);
+        timeStep.Hosted = host.Register(timeStep);
         var gameSpeed = new GameSpeedFeature();
         host.Register(gameSpeed);
         var menuInput = host.Register(new MenuInputFeature());
-        host.Register(new InfiniteDurabilityFeature());
-        host.Register(new NoSpoilageFeature());
-        host.Register(new RetainItemsOnUseFeature());
+        var durability = new InfiniteDurabilityFeature(Players);
+        durability.Hosted = host.Register(durability);
+        var spoilage = new NoSpoilageFeature(Players);
+        spoilage.Hosted = host.Register(spoilage);
+        var retainItems = new RetainItemsOnUseFeature(Players);
+        retainItems.Hosted = host.Register(retainItems);
         var catalog = new AskaItemCatalog();
         catalog.Hosted = host.Register(catalog);
         var give = new GiveItemFeature(new InventoryService(Players, guard));
         give.Hosted = host.Register(give);
-        host.Register(new FreeCraftingFeature());
+        var crafting = new FreeCraftingFeature(Players);
+        crafting.Hosted = host.Register(crafting);
         host.Register(new FreeBuildingFeature());
         host.Register(new FreeRepairsFeature());
         var tribe = new AskaTribeContext(Players, guard, error => Log.LogError($"Tribe discovery: {error}"));
+        var needs = new TribeNeedsCoordinator(tribe);
         var tribeGod = new VillagerGodModeFeature(tribe);
         tribeGod.Hosted = host.Register(tribeGod);
-        host.Register(new TribeNeedsFeature(tribe, "tribe.food", "No Hunger (Tribe)", new(FoodFraction: 1)));
-        host.Register(new TribeNeedsFeature(tribe, "tribe.water", "No Thirst (Tribe)", new(WaterFraction: 1)));
-        host.Register(new TribeNeedsFeature(tribe, "tribe.energy", "Infinite Energy (Tribe)", new(EnergyFraction: 1)));
-        host.Register(new TribeNeedsFeature(tribe, "tribe.rest", "Full Rest (Tribe)", new(RestFraction: 1)));
-        host.Register(new TribeNeedsFeature(tribe, "tribe.happiness", "Max Happiness (Tribe)", new(HappinessFraction: 1)));
-        host.Register(new TribeUnavailableFeature("tribe.temperature", "Temperature Immunity (Tribe)", AskaTribeContext.WarmthUnavailable));
-        host.Register(new TribeUnavailableFeature("tribe.aging", "Freeze Aging", AskaTribeContext.AgeUnavailable));
-        host.Register(new InstantRecruitmentFeature());
+        host.Register(new TribeNeedsFeature(needs, "tribe.food", "No Hunger (Tribe)", new(FoodFraction: 1)));
+        host.Register(new TribeNeedsFeature(needs, "tribe.water", "No Thirst (Tribe)", new(WaterFraction: 1)));
+        host.Register(new TribeNeedsFeature(needs, "tribe.energy", "Infinite Energy (Tribe)", new(EnergyFraction: 1)));
+        host.Register(new TribeNeedsFeature(needs, "tribe.rest", "Full Rest (Tribe)", new(RestFraction: 1)));
+        host.Register(new TribeNeedsFeature(needs, "tribe.happiness", "Max Happiness (Tribe)", new(HappinessFraction: 1)));
+        var tribeTemperature = new TribeTemperatureFeature(tribe);
+        tribeTemperature.Hosted = host.Register(tribeTemperature);
+        host.Register(new FreezeAgingFeature());
+        var recruitment = new InstantRecruitmentFeature(World);
+        recruitment.Hosted = host.Register(recruitment);
         var healTribe = new TribeRestoreFeature(tribe, true);
         healTribe.Hosted = host.Register(healTribe);
         var restoreTribe = new TribeRestoreFeature(tribe, false);
         restoreTribe.Hosted = host.Register(restoreTribe);
         var editor = new VillagerEditorService(tribe);
         editor.Hosted = host.Register(editor);
-        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed);
+        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting);
         var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -79,7 +90,7 @@ public sealed class Plugin : BasePlugin
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion,
             SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
         var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, catalog, give, editor, healTribe, restoreTribe, diagnostics,
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, catalog, give, editor, healTribe, restoreTribe, diagnostics,
             error => Log.LogError($"Trainer rendering failed; the menu is disabled until restart. Cursor and menu input will be released. {error}"));
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);

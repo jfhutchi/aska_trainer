@@ -48,9 +48,3 @@ internal sealed class WorldTimeFeature(IWorldContext world) : NativeFeature("wor
         base.Disable();
     }
 }
-
-internal sealed class TimeStepFeature() : NativeFeature("world.hour", "Adjust Time by One Hour")
-{
-    public override CompatibilityResult ProbeCompatibility() => CompatibilityResult.Incompatible(
-        "SetGameTime units and day-boundary behavior are unverified; +/-1 hour is disabled.");
-}

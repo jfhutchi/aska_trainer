@@ -8,10 +8,11 @@ namespace HutchASKA.Plugin.UI.Tabs;
 internal sealed class ItemsTab(FeatureControls controls, SinglePlayerGuard guard, AskaItemCatalog catalog, GiveItemFeature give)
 {
     private IReadOnlyList<ItemCatalogEntry> entries = Array.Empty<ItemCatalogEntry>();
+    private IReadOnlyList<ItemCatalogEntry> matches = Array.Empty<ItemCatalogEntry>();
     private string query = "", quantity = "1";
     private string? selectedId, message;
     private int page;
-    public void Clear() { entries = Array.Empty<ItemCatalogEntry>(); selectedId = message = null; page = 0; }
+    public void Clear() { entries = matches = Array.Empty<ItemCatalogEntry>(); selectedId = message = null; page = 0; }
     public void Draw()
     {
         controls.Toggle("items.durability");
@@ -23,13 +24,17 @@ internal sealed class ItemsTab(FeatureControls controls, SinglePlayerGuard guard
         if (GUILayout.Button("Refresh Runtime Item Catalog"))
         {
             catalog.TryRead(out entries, out message);
+            matches = ItemCatalogSearch.Filter(entries, query);
             selectedId = null; page = 0;
         }
         GUI.enabled = enabled;
         GUILayout.Label("Search display or internal name");
         var nextQuery = GUILayout.TextField(query);
-        if (nextQuery != query) { query = nextQuery; page = 0; selectedId = null; }
-        var matches = ItemCatalogSearch.Filter(entries, query);
+        if (nextQuery != query)
+        {
+            query = nextQuery; page = 0; selectedId = null;
+            matches = ItemCatalogSearch.Filter(entries, query);
+        }
         page = Math.Clamp(page, 0, Math.Max(0, (matches.Count - 1) / 20));
         GUILayout.Label($"{matches.Count} items | Page {page + 1}");
         GUILayout.BeginHorizontal();

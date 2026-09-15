@@ -61,7 +61,9 @@ Input lifecycle review fixes landed with the native Give Item task in 4d525a3 af
 
 ## Remaining external acceptance
 
-Version 0.1.2 responds to the user's low-contrast screenshot and approximately 10 FPS report with an owned opaque GUI skin and lifecycle-invalidated manager discovery. 69 core tests and the local plugin build pass. The 0.1.1 screenshot confirms menu rendering, but actual 0.1.2 FPS/readability/input acceptance remains pending. See [readability/performance evidence](readability-performance-repair.md).
+Version 0.1.2 responded to the user's low-contrast screenshot and approximately 10 FPS report with an owned opaque GUI skin and lifecycle-invalidated manager discovery. Its 69 core tests and local build passed. The user subsequently supplied readable screenshots and reported approximately 115 FPS. This did not establish individual cheat effectiveness. See [readability/performance evidence](readability-performance-repair.md).
+
+Version 0.1.3 expands the user's movement/Close repair request: physical root-motion control, fixed Close footer, harvesting 1x/2x/3x/4x, player/tribe cooling-frost protection, carried durability/spoilage, scoped consumable retention, material-only local crafting, normal pending recruitment and bounded native hour adjustment. Tribe needs share one half-second pass; list sorting and feature snapshots avoid repeated work. 120 core tests and the actual-reference build pass; native gameplay acceptance remains pending. Free Building, Free Repairs and Freeze Aging retain explicit implementation blockers. Historical stage rows above describe their original delivery, not current support. See [expanded retest](movement-harvest-close-retest.md) and [remaining roadmap](../research/disabled-options-roadmap.md).
 
 Post-implementation repair: the user reported a native menu failure in 0.1.0. Version 0.1.1 replaces two stripped toolbar call paths, contains callback faults, and adds a local interop regression gate plus three core tests (66 total). See [GUI repair evidence](gui-rendering-repair.md). Native menu retesting remains required.
 

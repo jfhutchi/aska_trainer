@@ -4,6 +4,21 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.3 development candidate
+
+- Reworked the ineffective movement control after native tracing showed the old attribute controls animation input rather than physical displacement. The new local-player hook scales only new horizontal on-foot root motion before native collision handling.
+- Added player harvesting presets 1x (normal), 2x, 3x and 4x, with separate native gathering and scoped tool-animation paths. Gameplay speed/effect acceptance remains pending.
+- Moved Close to a fixed footer outside scroll layout and retained the close request until an explicit reopen. F8 and tab clicks were user-confirmed; the new footer requires a native click retest.
+- Added local player and current tribe protection against further cooling/frost accumulation, preserving normal recovery. Existing cold/frost is not erased.
+- Implemented carried-item spoilage protection and carried/equipped tool durability protection using the inspected decay, hit-wear and digging-wear paths. Seasonal availability expiration remains native.
+- Implemented instant normal recruitment through a one-read deadline override inside the owned pending outlet's native completion callback, preserving normal population creation and rearm.
+- Combined enabled tribe needs into one shared half-second pass and bulk snapshots into one population resolution; shared failures reach all participating toggles. Individual edits remain available.
+- Cache sorted item/villager search results until data or query changes; reuse immutable feature snapshots and callback guards during updates/redraws.
+- Added Ignore Crafting Materials for native local-player crafting through its temporary material manifest, retaining normal unlocks, blueprint costs and completion.
+- Added Retain Consumables On Use after the native effect callback, preserving last-stack items without blocking unrelated inventory spending.
+- Enabled -1/+1 hour through the verified native clock setter; backward midnight crossing is visibly rejected rather than wrapping to the wrong day. Clock adjustment preserves freeze state and does not simulate elapsed work.
+- Documented native evidence, supported scope and remaining implementation blockers. New native behavior still requires the user's gameplay retest.
+
 ### Fixed in 0.1.2 development candidate
 
 - Opaque trainer window, stronger text contrast, larger controls and selected-tab styling; preserve other GUI users' skin/tint/enabled state after drawing.

@@ -73,6 +73,7 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
         visible = value;
         if (visible)
         {
+            window?.Open();
             previousCursorVisible = Cursor.visible;
             previousCursorLock = Cursor.lockState;
             if (menuInput is not null) FeatureInputActions.EnsureEnabled(menuInput);

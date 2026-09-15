@@ -9,12 +9,13 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
     TribeRestoreFeature heal, TribeRestoreFeature restore)
 {
     private IReadOnlyList<VillagerSnapshot> villagers = Array.Empty<VillagerSnapshot>();
+    private IReadOnlyList<VillagerSnapshot> matches = Array.Empty<VillagerSnapshot>();
     private VillagerSnapshot? selected;
     private VillagerEditRequest edits = new();
     private string query = "";
     private string? message;
     private int page;
-    public void Clear() { villagers = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; }
+    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; }
 
     public void Draw()
     {
@@ -35,8 +36,11 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
         if (!guard.Decision.Allowed) Clear();
         GUILayout.Label("Search villager name or ID");
         var nextQuery = GUILayout.TextField(query);
-        if (nextQuery != query) { query = nextQuery; page = 0; selected = null; edits = new(); }
-        var matches = VillagerSearch.Filter(villagers, query);
+        if (nextQuery != query)
+        {
+            query = nextQuery; page = 0; selected = null; edits = new();
+            matches = VillagerSearch.Filter(villagers, query);
+        }
         page = Math.Clamp(page, 0, Math.Max(0, (matches.Count - 1) / 12));
         GUILayout.Label($"{matches.Count} current snapshot(s) | Page {page + 1}");
         GUILayout.BeginHorizontal();
@@ -75,6 +79,7 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
     private void RefreshList()
     {
         editor.TryList(out villagers, out message);
+        matches = VillagerSearch.Filter(villagers, query);
         selected = null; edits = new(); page = 0;
     }
     private void Load(string id)
