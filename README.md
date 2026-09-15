@@ -6,7 +6,7 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-**Version `0.1.3` is a development candidate, not a gameplay-validated v1 release.** It reworks movement and Close, adds harvesting presets, and implements eight previously unavailable controls with documented native scope. The actual-reference build and 120 core tests pass; gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. Free Building, Free Repairs and Freeze Aging remain unavailable with explicit reasons. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
+**Version `0.1.4` is a development candidate, not a gameplay-validated v1 release.** It corrects the missed velocity movement path and the guard that excluded normal axe/pickaxe harvesting. It implements Free Building, Free Repairs, build-speed presets, larger terrain-leveling plans and fuel protection for campfires/standing torches. Gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. Freeze Aging remains unavailable with an explicit reason. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
 
 The user reported approximately 115 FPS and supplied readable screenshots for 0.1.2 after the earlier readability/performance repair. That observation does not validate the new controls or their FPS impact. See the [0.1.3 retest](docs/testing/movement-harvest-close-retest.md), [release checklist](docs/testing/v1-release-checklist.md), [earlier repair evidence](docs/testing/readability-performance-repair.md) and [implementation ledger](docs/testing/implementation-status.md).
 
@@ -30,7 +30,7 @@ Installed HarmonyX is `2.10.2`; Il2CppInterop is `1.5.1-ci.829`, commit `6d9007c
 
 Future release notes must state the exact ASKA, Unity, and BepInEx versions tested and any incompatible features. A game update may invalidate individual hooks even if the plugin still loads.
 
-See the [0.1.3 repair retest](docs/testing/movement-harvest-close-retest.md) and [unfinished-options roadmap](docs/research/disabled-options-roadmap.md) for the current work and remaining checks.
+The user reported that movement and tool harvesting were ineffective in 0.1.3. See the [0.1.4 follow-up retest](docs/testing/0.1.4-gameplay-retest.md) for the corrected native paths, bounded diagnostics and new-control checks, and the [unfinished-options roadmap](docs/research/disabled-options-roadmap.md) for remaining limitations.
 
 ## Features
 
@@ -40,8 +40,8 @@ Implemented controls compile against current local interop signatures and are **
 | --- | --- |
 | Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x and player harvesting presets 1x/2x/3x/4x. Native retests pending |
 | Items | Implemented: runtime catalog/search, native Give Item/Give Stack, durability protection for carried equipment, spoilage protection for carried non-equipment, and retaining local consumables after their normal use effects |
-| Crafting & Building | Implemented: Ignore Crafting Materials for normal local-player crafting, preserving blueprint costs/unlocks and native completion. Free Building and Free Repairs remain Incompatible |
-| World | Implemented: Freeze Time, -1/+1 hour and separate game-speed presets 0.5x/1x/2x/5x. Backward time adjustment cannot cross midnight |
+| Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs, player construction work presets 1x/2x/3x/4x and new terrain-leveling plans up to 5x5/10x10/15x15/20x20 grid tiles |
+| World | Implemented: Freeze Time, -1/+1 hour, separate game-speed presets 0.5x/1x/2x/5x and Infinite Fuel for campfires/standing torches. Backward time adjustment cannot cross midnight |
 | Tribe | Implemented: current owned-villager damage suppression and cooling/frost protection; independent food/water/energy/rest/happiness maintenance in one shared pass; Heal Entire Tribe; Restore All Needs. Freeze Aging remains Incompatible |
 | Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. Warmth is read-only; age is unavailable |
 | Advanced & Diagnostics | Implemented: Reset All, config reload, compatibility rescan, logging verbosity, optional state persistence, configurable hotkeys, actual Steam build detection, feature states and error reasons |
@@ -53,6 +53,10 @@ Durability and spoilage protect existing condition through narrow native loss pa
 Ignore Crafting Materials waives the temporary recipe-material manifest in the normal local-player crafting path. It leaves consumable blueprint-item costs, unlocks, station eligibility, crafting duration and product creation native; unrelated villager/cooking/forging paths are not automatically covered. Time adjustment changes the clock/weather through the native setter, preserving Freeze Time; it does not simulate an hour of work or survival. Moving forward across midnight uses native day advancement, while backward midnight crossing is refused with a visible reason.
 
 All enabled tribe needs share one update every half second. The batch resolves current registered, living, locally owned members once, rechecks live membership before writes, and retains no raw villagers across calls. Guests and ambiguous IDs are excluded. Max Needs leaves warmth and lifetime untouched. Remaining lifetime is never presented as chronological age: the inspected expiry modifier is golem-specific. Recruitment overrides one deadline read inside the owned pending outlet's native completion callback; it does not write the saved timer or call spawning directly. Native costs, villager creation and rearm remain in ASKA's normal path. The item and villager lists are sorted only when their snapshot or search changes.
+
+Free Building waives material checks for eligible current construction parts while keeping native work, layers and completion. Disabling rechecks actual supplies; completed work is retained. Free Repairs allows the normal repair-work phase without additional supplies. Any already deposited materials remain committed, and disabling does not revoke a repair phase already granted. Build Speed increases work per player hammer stroke, independently of material requirements.
+
+Terrain presets limit each side of a new leveling plan in grid tiles, not meters. Reopen leveling after changing the size. The 20x20 setting uses ASKA's larger native grid storage; if that matching template is unavailable, the normal grid is limited to 15x15 and the UI explains why. Existing plans are not resized and normal leveling work remains required. Infinite Fuel prevents fuel drain on owned campfires and standing torches; add starting fuel and light them normally. It does not refill or ignite an empty fire.
 
 ## Requirements
 
@@ -109,7 +113,7 @@ Create a local development candidate with PowerShell 7:
 .\scripts\Package-Release.ps1
 ```
 
-Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.3.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.4.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
 
 Repository-relative research/checklist links in the packaged README refer to the matching source checkout identified in BUILDINFO; those source documents are not duplicated in the ZIP.
 
@@ -133,11 +137,11 @@ Implemented defaults; their in-game interaction remains part of the manual smoke
 | F5 | Toggle freeze world time |
 | Reset All | Disable active cheats and restore native behavior where technically possible |
 
-All seven tabs contain controls or explicit compatibility reasons. BepInEx configuration stores hotkeys, movement/harvesting/game-speed selections, verbosity and optional enabled-state persistence. Duplicate gameplay hotkeys are ignored and the menu key takes priority. Set `RestoreEnabledStatesOnLaunch` only to explicitly opt in; restoration waits for positive single-player confirmation. Configuration is stored in `BepInEx/config/com.jfhutchi.hutchaska.cfg`, never in game saves.
+All seven tabs contain controls or explicit compatibility reasons. BepInEx configuration stores hotkeys, movement/harvesting/build-speed/terrain-size/game-speed selections, verbosity and optional enabled-state persistence. Duplicate gameplay hotkeys are ignored and the menu key takes priority. Set `RestoreEnabledStatesOnLaunch` only to explicitly opt in; restoration waits for positive single-player confirmation. Configuration is stored in `BepInEx/config/com.jfhutchi.hutchaska.cfg`, never in game saves.
 
 Reload Configuration leaves gameplay features off; edited saved flags are considered only at the next launch. Rescan disables features before probing and does not reinstall patches automatically. Reset All clears both editors, resets controller selections and retries pending native cleanup, including failed UI cleanup, while preserving healthy menu input access. Runtime-faulted features remain faulted until restart after correction.
 
-The menu preserves cursor state and uses an owned ASKA input context while open. Input suppression and native-menu interaction still require manual verification. Game speed respects native zero-scale pause states and restores the captured baseline; movement scales only new horizontal root-motion samples and stops modifying them when disabled; harvesting restores only the animator speed it owns. Reset All retries failed native cleanup where the target is still safely available. A scene-replaced target faults visibly rather than touching a stale native wrapper.
+The menu preserves cursor state and uses an owned ASKA input context while open. Input suppression and native-menu interaction still require manual verification. Game speed respects native zero-scale pause states and restores the captured baseline; movement scales native on-foot command speed and complementary horizontal root-motion samples, restoring temporary settings after each call; harvesting restores only the animator speed it owns. Reset All retries failed native cleanup where the target is still safely available. A scene-replaced target faults visibly rather than touching a stale native wrapper.
 
 ## Single-Player Safety
 
@@ -167,7 +171,7 @@ Full exceptions belong in the local `ASKA\BepInEx\LogOutput.log`; the UI should 
 ## Known Limitations
 
 - Plugin startup was observed and all stages build locally, but gameplay has not passed the in-game smoke matrix. The generated ZIP is a development candidate only.
-- Free Building, Free Repairs and Freeze Aging remain Incompatible: persistent supply-container restoration and ordinary-villager aging are unresolved. Age and warmth editing remain unavailable. New native controls require live acceptance on the recorded ASKA build; see the supported scopes above.
+- Freeze Aging remains Incompatible because ordinary-villager aging has not been established. Age and warmth editing remain unavailable. New native controls require live acceptance on the recorded ASKA build; see the supported scopes above.
 - Startup and detected versions do not establish gameplay compatibility. F8/input/cursor behavior, real single-player/co-op gates, pause/transition restoration, item initialization/save persistence and tribe membership/edit persistence require manual acceptance.
 - Multiplayer/co-op, network manipulation, achievement modification, DRM/access-control bypass, and external memory trainers are outside scope.
 - Exact game hooks require local assembly inspection; research notes alone do not verify every signature.

@@ -31,7 +31,7 @@ internal sealed class TrainerWindow
     private bool closeRequested;
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
-        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, AskaItemCatalog catalog, GiveItemFeature give,
+        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain, AskaItemCatalog catalog, GiveItemFeature give,
         VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe,
         DiagnosticsService diagnosticsService, Action<Exception> reportRenderError)
     {
@@ -41,7 +41,7 @@ internal sealed class TrainerWindow
         playerTab = new PlayerTab(controls, movement, harvesting, config);
         worldTab = new WorldTab(controls, speed, timeStep, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
-        craftingTab = new CraftingTab(controls);
+        craftingTab = new CraftingTab(controls, building, terrain, config);
         tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe);
         diagnostics = new DiagnosticsTab(diagnosticsService);
         advanced = new AdvancedTab(config, diagnosticsService);

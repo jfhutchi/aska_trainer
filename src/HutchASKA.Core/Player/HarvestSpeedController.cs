@@ -3,6 +3,12 @@ namespace HutchASKA.Core.Player;
 /// <summary>Preserves an animator's native baseline while one harvest owns its speed.</summary>
 public sealed class HarvestSpeedController
 {
+    public static bool HasActiveHarvestAction(string? sessionAction, string? movesetAction,
+        string? geometryAction, int expectedAction, int animatorAction) =>
+        !string.IsNullOrEmpty(sessionAction) && expectedAction != 0 && expectedAction == animatorAction
+        && string.Equals(sessionAction, movesetAction, StringComparison.Ordinal)
+        && string.Equals(sessionAction, geometryAction, StringComparison.Ordinal);
+
     public long? Owner { get; private set; }
     public float? Baseline { get; private set; }
     public float? Applied { get; private set; }

@@ -6,6 +6,27 @@ namespace HutchASKA.Core.Tests.Player;
 public sealed class MovementDeltaTests
 {
     [Fact]
+    public void CommandSpeedUsesTheCurrentNativeBaselineWithoutCompounding()
+    {
+        Assert.Equal(12, MovementDelta.ScaleNativeSpeed(4, 3));
+        Assert.Equal(12, MovementDelta.ScaleNativeSpeed(4, 3));
+        Assert.Equal(6, MovementDelta.ScaleNativeSpeed(2, 3));
+        Assert.Equal(0, MovementDelta.ScaleNativeSpeed(0, 5));
+        Assert.Equal(4, MovementDelta.ScaleNativeSpeed(4, 1));
+    }
+
+    [Theory]
+    [InlineData(float.NaN)]
+    [InlineData(float.PositiveInfinity)]
+    [InlineData(-1)]
+    public void InvalidNativeSpeedIsRejected(float speed) =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => MovementDelta.ScaleNativeSpeed(speed, 2));
+
+    [Fact]
+    public void NativeSpeedOverflowIsRejected() =>
+        Assert.Throws<InvalidOperationException>(() => MovementDelta.ScaleNativeSpeed(float.MaxValue, 5));
+
+    [Fact]
     public void ScalesOnlyTheNewHorizontalDistanceAndPreservesVerticalMotion()
     {
         var before = new Vector3(3, 4, 5);

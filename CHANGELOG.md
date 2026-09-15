@@ -4,6 +4,18 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.4 development candidate
+
+- Corrected movement's unhandled velocity path using a private, temporary movement-settings copy; retained complementary horizontal animation movement and native slopes/platforms/collisions.
+- Corrected tool harvesting: shipped axe/pickaxe movesets allow melee while harvesting, so the old blanket rejection excluded normal tools. Match the active harvest action and restore animation speed before combat.
+- Added bounded movement/harvesting diagnostics to identify actual hook dispatch and eligibility during the next gameplay test.
+- Implemented Free Building through one-read supply checks while retaining real inventory, native work, layers and completion; disabling rechecks actual readiness.
+- Implemented Free Repairs through native material eligibility, retaining normal hammer work. Deposited supplies stay committed and granted repair work is not revoked on disable.
+- Added construction work presets 1x/2x/3x/4x, independent of Free Building.
+- Added terrain-leveling presets 5x5/10x10/15x15/20x20 tiles using the larger native grid where required, with per-axis and storage-capacity limits. Reopen the leveling preview after changing size.
+- Added Infinite Fuel for owned campfires and standing torches. Normal initial fuel, ignition, extinguishing and refueling remain required.
+- New native effects require in-game acceptance; the user's reported failures in 0.1.3 are recorded in the follow-up retest.
+
 ### Changed in 0.1.3 development candidate
 
 - Reworked the ineffective movement control after native tracing showed the old attribute controls animation input rather than physical displacement. The new local-player hook scales only new horizontal on-foot root motion before native collision handling.

@@ -1,6 +1,8 @@
 extern alias UnityCore;
 
 using HarmonyLib;
+using System.Diagnostics;
+using BepInEx.Logging;
 using HutchASKA.Core.Features;
 using HutchASKA.Core.Player;
 using HutchASKA.Plugin.Game;
@@ -20,6 +22,15 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
     private int playerIdentity;
     private readonly Dictionary<IntPtr, GatherOwnership> gathering = new();
     private static HarvestSpeedFeature? instance;
+    private static readonly ManualLogSource DiagnosticLog = BepInEx.Logging.Logger.CreateLogSource("HutchASKA.Harvest");
+    private readonly long[] blocked = new long[8];
+    private int reports;
+    private long nextReport, updateCalls, localUpdates, animationWrites, timerAdvances;
+    private string lastMoveset = "", lastSessionAction = "", lastGeometryAction = "";
+    private bool lastMeleeAllowed;
+    private int lastExpectedAction, lastAnimatorAction;
+    private float lastObservedSpeed, lastAppliedSpeed;
+    private bool DiagnosticsActive => reports < 12;
     public MultiplierSetting Multiplier { get; } = new(1, 4);
 
     private sealed record GatherOwnership(GatherSession Session, int PlayerIdentity, float Native, float Applied);
@@ -29,6 +40,9 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
         var valid = typeof(HarvestSession).GetProperty(nameof(HarvestSession._startedAction)) is not null
             && typeof(HarvestSession).GetProperty(nameof(HarvestSession._harvestTime))?.PropertyType == typeof(float)
             && typeof(Animator).GetProperty(nameof(Animator.speed))?.CanWrite == true
+            && typeof(Animator).GetMethod("GetInteger", new[] { typeof(string) })?.ReturnType == typeof(int)
+            && typeof(CharacterGeometry).GetProperty("_lastStartedAction")?.PropertyType == typeof(string)
+            && AccessTools.DeclaredMethod(typeof(PlayerInteractionAgent), "SetCombatMode", new[] { typeof(bool) })?.ReturnType == typeof(void)
             && AccessTools.DeclaredMethod(typeof(HarvestSession), "Update", Type.EmptyTypes) is not null
             && AccessTools.DeclaredMethod(typeof(HarvestSession), "End", new[] { typeof(InteractionSessionState) }) is not null
             && AccessTools.DeclaredMethod(typeof(HarvestSession), "ResetSession", Type.EmptyTypes) is not null
@@ -41,6 +55,14 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
 
     public override bool TryEnable()
     {
+        reports = 0;
+        ResetDiagnostics();
+        lastMoveset = lastSessionAction = lastGeometryAction = "";
+        lastMeleeAllowed = false;
+        lastExpectedAction = lastAnimatorAction = 0;
+        lastObservedSpeed = lastAppliedSpeed = 0;
+        nextReport = Stopwatch.GetTimestamp() + Stopwatch.Frequency * 5;
+        StatusReason = "Harvest diagnostics active for 60 seconds; chop or mine to sample the boost.";
         instance = this;
         Patch(typeof(HarvestSession), "Update", nameof(HarvestUpdatePrefix), true);
         Patch(typeof(HarvestSession), "Update", nameof(HarvestUpdatePostfix), false);
@@ -49,6 +71,8 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
         Patch(typeof(GatherSession), "_GetGatherVolume", nameof(GatherVolumePostfix), false);
         Patch(typeof(GatherSession), "End", nameof(GatherEndPrefix), true);
         Patch(typeof(GatherSession), "ResetSession", nameof(GatherEndPrefix), true);
+        Patch(typeof(PlayerInteractionAgent), "SetCombatMode", nameof(CombatModePrefix), true);
+        DiagnosticLog.LogInfo($"Enabled harvest {Multiplier.Value:0}x; observing action ownership for 60 seconds.");
         return base.TryEnable();
     }
 
@@ -67,41 +91,73 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
         if (Multiplier.Value == 1 || session.SessionState != InteractionSessionState.RUNNING
             || session._harvestTime < 0 || !IsLocal(session.PlayerAgent, out _)) return;
         var moveset = session.HarvestInteraction?.GetAttackMoveset();
-        if (moveset == null || moveset.allowMeleeAttackWhileHarvesting
-            || !string.IsNullOrEmpty(moveset.animatorDamageEvent)) return;
+        if (moveset == null || !string.IsNullOrEmpty(moveset.animatorDamageEvent)
+            || !TryGetActiveHarvestAnimator(session, out _, out _, false)) return;
         // Native Update uses this timer only when no damage animation event is configured.
         session._harvestTime += UnityCore::UnityEngine.Time.deltaTime * (Multiplier.Value - 1);
+        if (DiagnosticsActive) timerAdvances++;
     }
 
-    private void UpdateHarvest(HarvestSession session)
+    private bool TryGetActiveHarvestAnimator(HarvestSession session, out PlayerCharacter? player, out Animator? animator, bool record)
     {
-        if (!IsLocal(session.PlayerAgent, out var player))
-        {
-            if (harvest?.Pointer == session.Pointer) RestoreHarvest();
-            return;
-        }
+        animator = null;
+        if (!IsLocal(session.PlayerAgent, out player)) return Block(0, record);
+        if (record && DiagnosticsActive) localUpdates++;
+        if (session.SessionState != InteractionSessionState.RUNNING) return Block(1, record);
+        if (session._harvestTime < 0) return Block(2, record);
         var moveset = session.HarvestInteraction?.GetAttackMoveset();
-        if (Multiplier.Value == 1 || session.SessionState != InteractionSessionState.RUNNING
-            || session._harvestTime < 0 || string.IsNullOrEmpty(session._startedAction)
-            || moveset == null || moveset.allowMeleeAttackWhileHarvesting)
+        if (moveset == null) return Block(3, record);
+        var geometry = session._playerGeo;
+        if (DiagnosticsActive)
         {
-            if (harvest?.Pointer == session.Pointer) RestoreHarvest();
-            return;
+            lastMoveset = moveset.name;
+            lastMeleeAllowed = moveset.allowMeleeAttackWhileHarvesting;
+            lastSessionAction = session._startedAction ?? "";
+            lastGeometryAction = geometry?._lastStartedAction ?? "";
+            lastExpectedAction = moveset.actionId;
         }
-        var animator = session._playerGeo?.Animator;
-        if (animator == null || player!.Geometry?.Animator != animator)
+        if (string.IsNullOrEmpty(session._startedAction) || string.IsNullOrEmpty(moveset.attackActionName)) return Block(4, record);
+        if (session.PlayerAgent.IsInCombatMode) return Block(5, record);
+        animator = geometry?.Animator;
+        if (animator == null || player!.Geometry?.Animator != animator) return Block(6, record);
+        var animatorAction = animator.GetInteger(moveset.attackActionName);
+        if (DiagnosticsActive) lastAnimatorAction = animatorAction;
+        // This flag permits melee alongside harvest; it is true on normal axe/pickaxe assets.
+        // Native RunAction/StopAction maintain these action names and animator integers.
+        if (!HarvestSpeedController.HasActiveHarvestAction(session._startedAction, moveset.attackActionName,
+                geometry!._lastStartedAction, moveset.actionId, animatorAction)) return Block(7, record);
+        return true;
+    }
+
+    private bool Block(int reason, bool record)
+    {
+        if (record && DiagnosticsActive) blocked[reason]++;
+        return false;
+    }
+
+    private void UpdateHarvest(HarvestSession session, bool nativeUpdate = false)
+    {
+        if (nativeUpdate && DiagnosticsActive) updateCalls++;
+        if (Multiplier.Value == 1 || !TryGetActiveHarvestAnimator(session, out var player, out var animator, nativeUpdate))
         {
             if (harvest?.Pointer == session.Pointer) RestoreHarvest();
             return;
         }
         if (harvest is not null && (harvest.Pointer != session.Pointer
-            || animation.Owner != animator.GetInstanceID() || playerIdentity != player.GetInstanceID()))
+            || animation.Owner != animator!.GetInstanceID() || playerIdentity != player!.GetInstanceID()))
             RestoreHarvest();
         harvest = session;
-        playerIdentity = player.GetInstanceID();
-        var target = animation.Target(animator.GetInstanceID(), animator.speed, Multiplier.Value);
+        playerIdentity = player!.GetInstanceID();
+        var observed = animator!.speed;
+        var target = animation.Target(animator.GetInstanceID(), observed, Multiplier.Value);
         animator.speed = target;
         animation.RecordApplied(target);
+        if (DiagnosticsActive)
+        {
+            animationWrites++;
+            lastObservedSpeed = observed;
+            lastAppliedSpeed = target;
+        }
     }
 
     private void RestoreHarvest()
@@ -146,6 +202,7 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
 
     public override void Tick()
     {
+        ReportDiagnostics();
         var currentPlayer = players.TryGetLocalPlayer(out var local) ? local!.GetInstanceID() : (int?)null;
         foreach (var identity in gathering.Where(entry => entry.Value.PlayerIdentity != currentPlayer)
                      .Select(entry => entry.Key).ToArray())
@@ -170,7 +227,28 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
         instance = null;
         RestoreHarvest();
         foreach (var identity in gathering.Keys.ToArray()) RestoreGather(identity);
+        StatusReason = null;
         base.Disable();
+    }
+
+    private void ReportDiagnostics()
+    {
+        if (!DiagnosticsActive || Stopwatch.GetTimestamp() < nextReport) return;
+        reports++;
+        StatusReason = $"Harvest sample: {animationWrites} animation boosts; {localUpdates}/{updateCalls} local updates; last action {lastSessionAction}, speed {lastAppliedSpeed:0.00}.";
+        DiagnosticLog.LogInfo($"Sample {reports}/12; multiplier={Multiplier.Value:0}; updates all/local={updateCalls}/{localUpdates}; "
+            + $"animationWrites={animationWrites}; timerAdvances={timerAdvances}; moveset={lastMoveset}; meleeAllowed={lastMeleeAllowed}; "
+            + $"session/geometryAction={lastSessionAction}/{lastGeometryAction}; action expected/observed={lastExpectedAction}/{lastAnimatorAction}; "
+            + $"speed observed/applied={lastObservedSpeed:0.000}/{lastAppliedSpeed:0.000}; "
+            + $"blocked nonlocal/inactive/matching/noMoveset/noAction/combat/wrongAnimator/actionMismatch={string.Join("/", blocked)}");
+        ResetDiagnostics();
+        nextReport = Stopwatch.GetTimestamp() + Stopwatch.Frequency * 5;
+    }
+
+    private void ResetDiagnostics()
+    {
+        updateCalls = localUpdates = animationWrites = timerAdvances = 0;
+        Array.Clear(blocked, 0, blocked.Length);
     }
 
     public override void Reset() { Disable(); Multiplier.Reset(); }
@@ -184,7 +262,17 @@ internal sealed class HarvestSpeedFeature(IPlayerContext players) : NativeFeatur
     private static void HarvestUpdatePostfix(HarvestSession __instance)
     {
         var feature = instance;
-        feature?.Hosted?.TryExecute(() => feature.UpdateHarvest(__instance));
+        feature?.Hosted?.TryExecute(() => feature.UpdateHarvest(__instance, true));
+    }
+
+    private static void CombatModePrefix(PlayerInteractionAgent __instance, bool __0)
+    {
+        var feature = instance;
+        if (!__0 || feature?.harvest is null) return;
+        feature.Hosted?.TryExecute(() =>
+        {
+            if (feature.IsLocal(__instance, out _)) feature.RestoreHarvest();
+        });
     }
 
     private static void HarvestEndPrefix(HarvestSession __instance)

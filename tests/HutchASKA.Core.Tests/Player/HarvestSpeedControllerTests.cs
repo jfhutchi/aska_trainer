@@ -4,6 +4,18 @@ namespace HutchASKA.Core.Tests.Player;
 
 public sealed class HarvestSpeedControllerTests
 {
+    [Theory]
+    [InlineData("Chop", "Chop", "Chop", 1, 1, true)]
+    [InlineData("ChopGround", "ChopGround", "ChopGround", 3, 3, true)]
+    [InlineData("Chop", "Chop", "Attack", 1, 1, false)]
+    [InlineData("Chop", "Chop", "Chop", 1, 0, false)]
+    [InlineData("Chop", "ChopGround", "Chop", 1, 1, false)]
+    [InlineData("", "Chop", "Chop", 1, 1, false)]
+    [InlineData("Chop", "Chop", "Chop", 0, 0, false)]
+    public void RequiresTheSpecificLiveHarvestAction(string session, string moveset, string geometry,
+        int expected, int current, bool allowed) =>
+        Assert.Equal(allowed, HarvestSpeedController.HasActiveHarvestAction(session, moveset, geometry, expected, current));
+
     [Fact]
     public void PresetChangesDoNotCompoundAndRestoreTheNativeBaseline()
     {

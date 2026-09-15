@@ -11,6 +11,7 @@ internal sealed class WorldTab(FeatureControls controls, GameSpeedFeature speed,
     internal void Draw()
     {
         controls.Toggle("world.freeze");
+        controls.Toggle("world.fuel");
         var previous = GUI.enabled;
         GUI.enabled = previous && controls.CanChange(controls.Get("world.hour"));
         GUILayout.BeginHorizontal();

@@ -61,6 +61,14 @@ Input lifecycle review fixes landed with the native Give Item task in 4d525a3 af
 
 ## Remaining external acceptance
 
+Version 0.1.4 addresses the user's failed 0.1.3 movement and tool-harvest tests
+with native velocity-path scaling and positive harvest-action guards. It adds
+Free Building, Free Repairs, build-work presets, terrain plans up to 20x20 grid
+tiles and campfire/standing-torch fuel protection. 164 pure core tests pass;
+native acceptance remains pending. Freeze Aging remains unavailable. See
+[0.1.4 retest](0.1.4-gameplay-retest.md). Historical rows and earlier-version
+paragraphs record the state at those versions rather than current support.
+
 Version 0.1.2 responded to the user's low-contrast screenshot and approximately 10 FPS report with an owned opaque GUI skin and lifecycle-invalidated manager discovery. Its 69 core tests and local build passed. The user subsequently supplied readable screenshots and reported approximately 115 FPS. This did not establish individual cheat effectiveness. See [readability/performance evidence](readability-performance-repair.md).
 
 Version 0.1.3 expands the user's movement/Close repair request: physical root-motion control, fixed Close footer, harvesting 1x/2x/3x/4x, player/tribe cooling-frost protection, carried durability/spoilage, scoped consumable retention, material-only local crafting, normal pending recruitment and bounded native hour adjustment. Tribe needs share one half-second pass; list sorting and feature snapshots avoid repeated work. 120 core tests and the actual-reference build pass; native gameplay acceptance remains pending. Free Building, Free Repairs and Freeze Aging retain explicit implementation blockers. Historical stage rows above describe their original delivery, not current support. See [expanded retest](movement-harvest-close-retest.md) and [remaining roadmap](../research/disabled-options-roadmap.md).

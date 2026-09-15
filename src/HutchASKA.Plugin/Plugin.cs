@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.3";
+    public const string PluginVersion = "0.1.4";
 
     public override void Load()
     {
@@ -42,7 +42,13 @@ public sealed class Plugin : BasePlugin
         movement.Hosted = host.Register(movement);
         var harvesting = new HarvestSpeedFeature(Players);
         harvesting.Hosted = host.Register(harvesting);
+        var buildSpeed = new BuildSpeedFeature(Players);
+        buildSpeed.Hosted = host.Register(buildSpeed);
+        var terrain = new TerrainLevelingFeature(Players);
+        terrain.Hosted = host.Register(terrain);
         host.Register(new WorldTimeFeature(World));
+        var fuel = new InfiniteFuelFeature();
+        fuel.Hosted = host.Register(fuel);
         var timeStep = new TimeStepFeature(World);
         timeStep.Hosted = host.Register(timeStep);
         var gameSpeed = new GameSpeedFeature();
@@ -60,8 +66,10 @@ public sealed class Plugin : BasePlugin
         give.Hosted = host.Register(give);
         var crafting = new FreeCraftingFeature(Players);
         crafting.Hosted = host.Register(crafting);
-        host.Register(new FreeBuildingFeature());
-        host.Register(new FreeRepairsFeature());
+        var building = new FreeBuildingFeature(guard);
+        building.Hosted = host.Register(building);
+        var repairs = new FreeRepairsFeature();
+        repairs.Hosted = host.Register(repairs);
         var tribe = new AskaTribeContext(Players, guard, error => Log.LogError($"Tribe discovery: {error}"));
         var needs = new TribeNeedsCoordinator(tribe);
         var tribeGod = new VillagerGodModeFeature(tribe);
@@ -82,7 +90,7 @@ public sealed class Plugin : BasePlugin
         restoreTribe.Hosted = host.Register(restoreTribe);
         var editor = new VillagerEditorService(tribe);
         editor.Hosted = host.Register(editor);
-        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting);
+        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain);
         var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -90,7 +98,7 @@ public sealed class Plugin : BasePlugin
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion,
             SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
         var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, catalog, give, editor, healTribe, restoreTribe, diagnostics,
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, catalog, give, editor, healTribe, restoreTribe, diagnostics,
             error => Log.LogError($"Trainer rendering failed; the menu is disabled until restart. Cursor and menu input will be released. {error}"));
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
