@@ -4,6 +4,10 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.11 development candidate
+
+- Added Rare Fish Anywhere. During an eligible local fishing selection it removes the rare-fish-school location requirement while retaining native bait, season, biome, bite, catch, inventory and progress processing. Rare Fish Boost still controls relative selection weight and does not guarantee every catch.
+
 ### Changed in 0.1.10 development candidate
 
 - Corrected Tribe Movement Speed eligibility by using the villager controlled by the native navigation controller as the identity boundary. Removed a redundant equality check between different generated interface views of that controller, while keeping swimming, vehicles, ladders and special link traversal at native speed.

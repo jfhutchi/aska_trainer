@@ -5,6 +5,9 @@ public static class FishingAssistMath
 {
     public static int NormalizeRareWeightPreset(int value) => value is 20 or 30 or 40 or 50 ? value : 1;
 
+    public static bool UseBaseFishEligibility(bool nativeBaseFish, bool rareAnywhere) =>
+        nativeBaseFish || rareAnywhere;
+
     public static float ScaleWeight(float native, bool special, float multiplier)
     {
         if (multiplier is not (1 or 20 or 30 or 40 or 50))

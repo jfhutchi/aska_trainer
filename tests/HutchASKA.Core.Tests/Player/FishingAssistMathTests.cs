@@ -32,6 +32,15 @@ public sealed class FishingAssistMathTests
         Assert.Equal(1, common / (common + boosted) + boosted / (common + boosted));
     }
 
+    [Theory]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, true)]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, true)]
+    public void RareAnywhereBypassesOnlyTheLocalPopulationRequirement(bool nativeBaseFish,
+        bool rareAnywhere, bool expected) =>
+        Assert.Equal(expected, FishingAssistMath.UseBaseFishEligibility(nativeBaseFish, rareAnywhere));
+
     [Fact]
     public void ZeroWeightStaysZeroAndBaitOnlyWeightRemainsValid()
     {

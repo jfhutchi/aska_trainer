@@ -22,9 +22,10 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
     private readonly HashSet<PullScope> ownedPulls = new();
     private CastState? cast;
     private int casts, bites, weightedBites, pulls, reports;
-    private (float Bite, float Rare, bool Easy, int Casts, int Bites, int Weights, int Pulls)? published;
+    private (float Bite, float Rare, bool Anywhere, bool Easy, int Casts, int Bites, int Weights, int Pulls)? published;
     public MultiplierSetting BiteSpeed { get; } = new(1, 4);
     public MultiplierSetting RareWeight { get; } = new(1, 50);
+    public bool RareAnywhere { get; set; }
     public bool EasyCatch { get; set; }
 
     private sealed class CastState(FishingRoutine routine, FishingMeleeObject rod, int playerIdentity)
@@ -156,7 +157,7 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
             ApplyTimers(current, BiteSpeed.Value, scope.HadFish && EasyCatch ? 4 : 1);
         }
         if (!scope.HadFish) current.EscapeScale = 1;
-        if (RareWeight.Value == 1 || routine.__1__state != 1 || scope.HadFish
+        if ((RareWeight.Value == 1 && !RareAnywhere) || routine.__1__state != 1 || scope.HadFish
             || rod.sinker == null || !rod.sinker.IsInWater || rod._baitEquipPoint?._item == null
             || routine._waitTime_5__3 + UnityCore::UnityEngine.Time.deltaTime < routine._waitTarget_5__2) return;
         PrepareWeights(scope, rod);
@@ -203,6 +204,23 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
         scope.Original = original;
         scope.Replacement = NativeObject.Instantiate(original).Cast<FishableItemsConfig>();
         scope.Replacement.FishableItems = entries;
+        if (RareAnywhere)
+        {
+            var populationIndependent = new Il2CppSystem.Collections.Generic.List<SandSailorStudio.Inventory.ItemInfo>();
+            for (var i = 0; i < original.baseFishes.Count; i++)
+            {
+                var item = original.baseFishes[i];
+                if (item != null && !populationIndependent.Contains(item)) populationIndependent.Add(item);
+            }
+            for (var i = 0; i < original.FishableItems.Count; i++)
+            {
+                var source = original.FishableItems[i];
+                var nativeBase = original.baseFishes.Contains(source.info);
+                if (FishingAssistMath.UseBaseFishEligibility(nativeBase, true)
+                    && !populationIndependent.Contains(source.info)) populationIndependent.Add(source.info);
+            }
+            scope.Replacement.baseFishes = populationIndependent;
+        }
         rod.FishableItems = scope.Replacement;
         weightedBites = Math.Min(weightedBites + 1, 999999);
     }
@@ -244,7 +262,7 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
             if (reports < 12)
             {
                 reports++;
-                Log.LogInfo($"Bite {bites}: wait={BiteSpeed.Value:0.#}x, rare weight={RareWeight.Value:0.#}x, easy catch={EasyCatch}; native fish/bait processing completed.");
+                Log.LogInfo($"Bite {bites}: wait={BiteSpeed.Value:0.#}x, rare weight={RareWeight.Value:0.#}x, rare anywhere={RareAnywhere}, easy catch={EasyCatch}; native fish/bait processing completed.");
             }
         }
         ApplyTimers(current, BiteSpeed.Value, hooked && EasyCatch ? 4 : 1);
@@ -322,10 +340,10 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
 
     private void PublishStatus()
     {
-        var values = (BiteSpeed.Value, RareWeight.Value, EasyCatch, casts, bites, weightedBites, pulls);
+        var values = (BiteSpeed.Value, RareWeight.Value, RareAnywhere, EasyCatch, casts, bites, weightedBites, pulls);
         if (published == values) return;
         published = values;
-        StatusReason = $"Bite {BiteSpeed.Value:0.#}x; rare weight {RareWeight.Value:0.#}x; easy catch {(EasyCatch ? "on" : "off")}. Casts {casts}, bites {bites}, weighted selections {weightedBites}, assisted pulls {pulls}.";
+        StatusReason = $"Bite {BiteSpeed.Value:0.#}x; rare weight {RareWeight.Value:0.#}x; rare anywhere {(RareAnywhere ? "on" : "off")}; easy catch {(EasyCatch ? "on" : "off")}. Casts {casts}, bites {bites}, weighted selections {weightedBites}, assisted pulls {pulls}.";
     }
 
     public override void Tick()
@@ -357,6 +375,7 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
         Disable();
         BiteSpeed.Reset();
         RareWeight.Reset();
+        RareAnywhere = false;
         EasyCatch = false;
     }
 }

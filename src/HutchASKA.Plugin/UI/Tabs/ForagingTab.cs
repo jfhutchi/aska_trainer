@@ -22,6 +22,13 @@ internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature
         {
             var changed = Preset("Bite Speed", fishing.BiteSpeed, BitePresets, value => config.FishingBiteSpeed.Value = value);
             changed |= Preset("Rare Fish Boost", fishing.RareWeight, RarePresets, value => config.FishingRareWeight.Value = value);
+            var rareAnywhere = GUILayout.Toggle(fishing.RareAnywhere, "Rare Fish Anywhere");
+            if (rareAnywhere != fishing.RareAnywhere)
+            {
+                fishing.RareAnywhere = rareAnywhere;
+                config.FishingRareAnywhere.Value = rareAnywhere;
+                changed = true;
+            }
             var easyCatch = GUILayout.Toggle(fishing.EasyCatch, "Easy Catch");
             if (easyCatch != fishing.EasyCatch)
             {
@@ -30,11 +37,12 @@ internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature
                 changed = true;
             }
             if (changed) controls.Set(fishFeature,
-                fishing.BiteSpeed.Value > 1 || fishing.RareWeight.Value > 1 || fishing.EasyCatch);
+                fishing.BiteSpeed.Value > 1 || fishing.RareWeight.Value > 1 || fishing.RareAnywhere || fishing.EasyCatch);
         }
         finally { GUI.enabled = previous; }
         GUILayout.Label("Cast and reel in normally. Easy Catch gives you longer to react and improves a valid catch.");
-        GUILayout.Label("Rare Fish Boost changes eligible fish selection. It does not guarantee a rare fish on every cast.");
+        GUILayout.Label("Rare Fish Anywhere removes the local fish-school requirement. Bait, season and biome checks remain normal.");
+        GUILayout.Label("Rare Fish Boost changes selection odds. It does not guarantee a rare fish on every cast.");
         if (fishFeature.StatusReason is { } fishingReason) GUILayout.Label(fishingReason);
 
         GUILayout.Space(12);

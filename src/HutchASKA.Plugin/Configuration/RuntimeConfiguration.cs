@@ -33,6 +33,7 @@ internal sealed class RuntimeConfiguration
     public ConfigEntry<int> TerrainSize { get; }
     public ConfigEntry<int> FishingBiteSpeed { get; }
     public ConfigEntry<int> FishingRareWeight { get; }
+    public ConfigEntry<bool> FishingRareAnywhere { get; }
     public ConfigEntry<bool> FishingEasyCatch { get; }
     public ConfigEntry<int> MushroomRegrowth { get; }
     public ConfigEntry<int> PlayerSkillGain { get; }
@@ -69,6 +70,7 @@ internal sealed class RuntimeConfiguration
         TerrainSize = config.Bind("Crafting", "TerrainLevelingSize", 5, "Maximum terrain leveling plan side in grid tiles: 5 to 20. Applies to new leveling plans.");
         FishingBiteSpeed = config.Bind("Fishing", "BiteSpeed", 1, "Bite wait speed: 1 (normal), 2 or 4.");
         FishingRareWeight = config.Bind("Fishing", "RareFishWeight", 1, "Eligible rare-fish selection weight: 1 (normal), 20, 30, 40 or 50. Other values, including legacy 2 and 4, reset to normal. Not a guaranteed catch percentage.");
+        FishingRareAnywhere = config.Bind("Fishing", "RareFishAnywhere", false, "Allow rare fish without a local rare-fish population. Native bait, season and biome checks remain active.");
         FishingEasyCatch = config.Bind("Fishing", "EasyCatch", false, "Longer reaction time and improved valid catches while Fishing Assists is enabled.");
         MushroomRegrowth = config.Bind("Foraging", "MushroomRegrowth", 1, "Unavailable pending autosave-safe timers. Forced to 1 (normal).");
         PlayerSkillGain = config.Bind("Player", "SkillGainMultiplier", 1, "Player earned skill experience: 1 (normal) to 5. Native caps remain.");
@@ -116,6 +118,8 @@ internal sealed class RuntimeConfiguration
         TerrainSize.Value = 5;
         FishingBiteSpeed.Value = 1;
         FishingRareWeight.Value = 1;
+        FishingRareAnywhere.Value = false;
+        fishing.RareAnywhere = false;
         FishingEasyCatch.Value = false;
         fishing.EasyCatch = false;
         MushroomRegrowth.Value = 1;
@@ -156,6 +160,7 @@ internal sealed class RuntimeConfiguration
         fishing.BiteSpeed.Value = AssistPreset(FishingBiteSpeed.Value);
         FishingRareWeight.Value = FishingAssistMath.NormalizeRareWeightPreset(FishingRareWeight.Value);
         fishing.RareWeight.Value = FishingRareWeight.Value;
+        fishing.RareAnywhere = FishingRareAnywhere.Value;
         fishing.EasyCatch = FishingEasyCatch.Value;
         mushrooms.Multiplier.Reset();
         MushroomRegrowth.Value = 1;
