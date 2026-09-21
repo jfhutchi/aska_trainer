@@ -4,6 +4,10 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.10 development candidate
+
+- Corrected Tribe Movement Speed eligibility by using the villager controlled by the native navigation controller as the identity boundary. Removed a redundant equality check between different generated interface views of that controller, while keeping swimming, vehicles, ladders and special link traversal at native speed.
+
 ### Changed in 0.1.9 development candidate
 
 - Added session-only World weather choices: Normal Forecast, Clear Skies, Rain, Fog, Overcast and Blizzard. Uses loaded ordinary weather assets, pauses for special weather, and restores native forecasting without regenerating forecast dates or changing the clock. Ordinary wetness, snow and gameplay consequences remain native.

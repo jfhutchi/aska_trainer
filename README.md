@@ -6,7 +6,9 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Version 0.1.9 adds World-tab weather choices: Normal Forecast, Clear Skies,
+Version 0.1.10 corrects Tribe Movement Speed eligibility while retaining native
+speed for swimming, vehicles, ladders and special link traversal. Version 0.1.9
+added World-tab weather choices: Normal Forecast, Clear Skies,
 Rain, Fog, Overcast and Blizzard, using ordinary weather assets loaded by the
 current world. The selection is session-only, pauses for special-event weather,
 and does not reroll the forecast or move the clock. Normal/reset resumes native
@@ -34,7 +36,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.9` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.10` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.

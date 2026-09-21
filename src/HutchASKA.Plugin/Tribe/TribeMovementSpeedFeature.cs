@@ -3,6 +3,7 @@ using System.Diagnostics;
 using HarmonyLib;
 using HutchASKA.Core.Features;
 using HutchASKA.Core.Player;
+using HutchASKA.Core.Tribe;
 using HutchASKA.Plugin.Infrastructure;
 using SSSGame;
 using SSSGame.AI;
@@ -26,11 +27,9 @@ internal sealed class TribeMovementSpeedFeature(ITribeContext tribe)
         AccessTools.DeclaredMethod(typeof(CreatureController), "Update", Type.EmptyTypes)?.ReturnType == typeof(void)
         && AccessTools.DeclaredMethod(typeof(CreatureController), "_GetMovementSpeed", new[] { typeof(AIMovementSpeed) })?.ReturnType == typeof(float)
         && typeof(CreatureController).GetProperty("NavAgentControllable")?.PropertyType == typeof(INavAgentControllable)
-        && AccessTools.DeclaredMethod(typeof(Villager), "GetControlAI", Type.EmptyTypes)?.ReturnType == typeof(IControlAI)
         && typeof(CreatureController).GetProperty("_linkTraversalState")?.PropertyType == typeof(LinkTraversalState)
         && typeof(LinkTraversalState).GetProperty("valid")?.PropertyType == typeof(bool)
-        && new[] { "_initialized", "agentReady", "IsOwner", "IsGrounded", "IsSwimming", "IsOnLadder",
-            "InVehicle", "CanMove", "IsStopped", "_performingRootMotion", "_lockMovement" }
+        && new[] { "IsSwimming", "IsOnLadder", "InVehicle" }
             .All(name => typeof(CreatureController).GetProperty(name)?.PropertyType == typeof(bool))
         ? CompatibilityResult.Compatible()
         : CompatibilityResult.Incompatible("The owned villager ground-navigation speed or traversal-state API is unavailable.");
@@ -64,15 +63,13 @@ internal sealed class TribeMovementSpeedFeature(ITribeContext tribe)
 
     private bool IsOrdinaryOwnedMovement(CreatureController controller)
     {
-        if (!controller || !controller._initialized || !controller.agentReady || !controller.IsOwner
-            || !controller.IsGrounded || controller.IsSwimming || controller.IsOnLadder || controller.InVehicle
-            || !controller.CanMove || controller.IsStopped || controller._performingRootMotion || controller._lockMovement
-            || controller._linkTraversalState.valid) return false;
-        var agent = controller._agent;
-        if (!agent || !agent.isActiveAndEnabled || !agent.isOnNavMesh || agent.isOnOffMeshLink) return false;
+        if (!controller) return false;
         var villager = controller.NavAgentControllable?.TryCast<Villager>();
-        return villager != null && villager.GetControlAI()?.Pointer == controller.Pointer
-            && tribe.IsCurrentVillager(villager);
+        var owned = villager != null && tribe.IsCurrentVillager(villager);
+        // The native Update call already owns the active NavMeshAgent. Interface wrappers for that controller
+        // can use different pointers, so the controlled villager is the stable identity boundary.
+        return TribeMovementEligibility.CanScale(villager != null, owned, controller.IsSwimming,
+            controller.IsOnLadder, controller.InVehicle, controller._linkTraversalState.valid);
     }
 
     private static void SpeedPostfix(CreatureController __instance, ref float __result)
