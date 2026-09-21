@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.5";
+    public const string PluginVersion = "0.1.6";
 
     public override void Load()
     {
@@ -54,9 +54,9 @@ public sealed class Plugin : BasePlugin
         var gameSpeed = new GameSpeedFeature();
         host.Register(gameSpeed);
         var menuInput = host.Register(new MenuInputFeature());
-        var durability = new InfiniteDurabilityFeature(Players);
+        var durability = new InfiniteDurabilityFeature();
         durability.Hosted = host.Register(durability);
-        var spoilage = new NoSpoilageFeature(Players);
+        var spoilage = new NoSpoilageFeature();
         spoilage.Hosted = host.Register(spoilage);
         var retainItems = new RetainItemsOnUseFeature(Players);
         retainItems.Hosted = host.Register(retainItems);

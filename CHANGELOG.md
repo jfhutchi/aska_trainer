@@ -4,6 +4,16 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.6 development candidate
+
+- Recorded user-confirmed movement speed in 0.1.5, corroborated by native speed samples of 5 to 10 at 2x.
+- Replaced the Build Speed work-amount hook after repeated native-to-managed exceptions stopped construction at zero progress. Normal native work submission is no longer patched.
+- Scoped private copies of building configuration/moveset scale only the two work coefficients during one local hammer event. Shared assets, native elapsed time, tool wear, stamina, injury and proficiency settings remain unchanged.
+- Added bounded building-event/progress logging, 14 coefficient regression cases and a local compiled-hook gate that rejects the withdrawn implementation.
+- Withdrew Infinite Durability and No Spoilage after the latest 0.1.5 log contained 688,666 item Run trampoline errors and 246 equipment-wear trampoline errors. Their hook classes are absent and activation is rejected, including restored configuration. Normal wear/spoilage resumes; this is containment, not a completed replacement for those features.
+- Re-inspected the replacement building path against updated ASKA Steam build 25326768 / game 1.44.1509261752 and added compiled regression checks for the withdrawn item hooks.
+- Expanded leveling remains unavailable after its preview overflow; this update does not re-enable it.
+
 ### Changed in 0.1.5 development candidate
 
 - Corrected movement's inverted native player-input permission check. Actual 0.1.4 diagnostics showed normal local commands were all rejected; native PlayerDrive requires hasExternalControl=true, while target matching clears it. Added regression cases for normal input and scripted/special movement exclusions.

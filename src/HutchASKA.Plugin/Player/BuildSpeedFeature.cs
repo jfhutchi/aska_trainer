@@ -1,62 +1,105 @@
+extern alias UnityCore;
+
+using BepInEx.Logging;
 using HarmonyLib;
 using HutchASKA.Core.Features;
-using HutchASKA.Core.Items;
 using HutchASKA.Core.Player;
 using HutchASKA.Plugin.Game;
 using HutchASKA.Plugin.Infrastructure;
 using SSSGame;
 using BuildSession = SSSGame.PlayerBuildInteractionConfig.PlayerBuildInteractionSession;
+using NativeObject = UnityCore::UnityEngine.Object;
 
 namespace HutchASKA.Plugin.Player;
 
 internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature("player.buildspeed", "Build Speed")
 {
-    private readonly Harmony harmony = new(Plugin.PluginGuid + ".buildspeed");
     private readonly IPlayerContext playerContext = players;
+    private readonly Harmony harmony = new(Plugin.PluginGuid + ".buildspeed");
+    private static readonly ManualLogSource DiagnosticLog = BepInEx.Logging.Logger.CreateLogSource("HutchASKA.BuildSpeed");
+    private readonly List<WorkEvent> ownedEvents = new();
     private static BuildSpeedFeature? instance;
-    [ThreadStatic] private static BuildScope scope;
-    private readonly record struct BuildScope(BuildSession? Session, IntPtr Interaction);
-    private int localEvents;
-    private int scaledRequests;
+    [ThreadStatic] private static WorkEvent? scope;
+    private int localEvents, boostedEvents, reports;
     private float reportedMultiplier;
-    private string lastDetail = "Waiting for a building animation event.";
+    private string lastDetail = "Waiting for a building work event.";
     public MultiplierSetting Multiplier { get; } = new(1, 4);
+
+    private sealed class WorkEvent(BuildSpeedFeature owner, BuildSession session, BuildInteraction interaction,
+        PlayerBuildInteractionConfig original, float multiplier)
+    {
+        public BuildSpeedFeature Owner { get; } = owner;
+        public BuildSession Session { get; } = session;
+        public BuildInteraction Interaction { get; } = interaction;
+        public PlayerBuildInteractionConfig Original { get; } = original;
+        public PlayerBuildInteractionConfig? Replacement { get; private set; }
+        private InteractionMoveset? replacementMoveset;
+        public bool Active { get; set; } = true;
+        public bool Substituted { get; set; }
+        public float Before { get; } = interaction.CurrentBuildVolume;
+        public float Multiplier { get; } = multiplier;
+
+        public void Prepare()
+        {
+            var moveset = Original.moveset;
+            if (!moveset) throw new InvalidOperationException("Building moveset is unavailable.");
+            var work = new BuildWorkCoefficients(moveset.baseUnarmedDamage, moveset.damageMultiplier).Scale(Multiplier);
+            Replacement = NativeObject.Instantiate(Original).Cast<PlayerBuildInteractionConfig>();
+            replacementMoveset = NativeObject.Instantiate(moveset).Cast<InteractionMoveset>();
+            replacementMoveset.baseUnarmedDamage = work.BaseWork;
+            replacementMoveset.damageMultiplier = work.AttributeMultiplier;
+            Replacement.moveset = replacementMoveset;
+        }
+
+        public void Release()
+        {
+            if (Active) throw new InvalidOperationException("Building event cleanup is waiting for its native callback to finish.");
+            if (Replacement) NativeObject.Destroy(Replacement);
+            Replacement = null;
+            if (replacementMoveset) NativeObject.Destroy(replacementMoveset);
+            replacementMoveset = null;
+            Owner.ownedEvents.Remove(this);
+        }
+    }
+
+    private readonly record struct EventState(WorkEvent? Parent, WorkEvent? Current);
 
     public override CompatibilityResult ProbeCompatibility() =>
         AccessTools.DeclaredMethod(typeof(BuildSession), "_OnAnimatorEvent", new[] { typeof(string) })?.ReturnType == typeof(void)
-        && AccessTools.DeclaredMethod(typeof(BuildInteraction), "RequestAddBuildVolume", new[] { typeof(float).MakeByRefType() })?.ReturnType == typeof(void)
-        // This session hides the base Agent property with a more specific return type.
+        && AccessTools.DeclaredProperty(typeof(BuildSession), "BuildConfig")?.GetMethod is { ReturnType: var configType }
+        && configType == typeof(PlayerBuildInteractionConfig)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "Agent")?.PropertyType == typeof(PlayerInteractionAgent)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "BuildInteraction")?.PropertyType == typeof(BuildInteraction)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "_actionStarted")?.PropertyType == typeof(bool)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "_targetMatched")?.PropertyType == typeof(bool)
+        && typeof(PlayerBuildInteractionConfig).GetProperty("moveset")?.CanWrite == true
+        && typeof(InteractionMoveset).GetProperty("baseUnarmedDamage")?.CanWrite == true
+        && typeof(InteractionMoveset).GetProperty("damageMultiplier")?.CanWrite == true
         ? CompatibilityResult.Compatible()
-        : CompatibilityResult.Incompatible("Local player construction contribution API is unavailable.");
+        : CompatibilityResult.Incompatible("Local building configuration or work coefficient API is unavailable.");
 
     public override bool TryEnable()
     {
         instance = this;
-        localEvents = scaledRequests = 0;
-        lastDetail = "Waiting for a building animation event.";
+        localEvents = boostedEvents = reports = 0;
+        lastDetail = "Waiting for a building work event.";
         PublishStatus();
         harmony.Patch(AccessTools.DeclaredMethod(typeof(BuildSession), "_OnAnimatorEvent"),
             prefix: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(EventPrefix)),
             finalizer: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(EventFinalizer)));
-        harmony.Patch(AccessTools.DeclaredMethod(typeof(BuildInteraction), "RequestAddBuildVolume"),
-            prefix: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(WorkPrefix)),
-            postfix: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(WorkPostfix)),
-            finalizer: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(WorkFinalizer)));
+        harmony.Patch(AccessTools.DeclaredProperty(typeof(BuildSession), "BuildConfig").GetMethod,
+            postfix: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(ConfigPostfix)));
+        DiagnosticLog.LogInfo($"Enabled {Multiplier.Value:0}x building; native work submission remains unpatched.");
         return base.TryEnable();
     }
 
-    private string? LocalBuildBlockReason(BuildSession? session, BuildInteraction? interaction)
+    private string? LocalBuildBlockReason(BuildSession session, BuildInteraction? interaction)
     {
-        if (session is null || session.SessionState != InteractionSessionState.RUNNING) return "Build session is not running.";
+        if (session.SessionState != InteractionSessionState.RUNNING) return "Build session is not running.";
         if (!session._targetMatched) return "Player has not reached the building position.";
         if (!session._actionStarted) return "Building action has not started.";
         if (interaction == null || !interaction.isActiveAndEnabled) return "Build interaction is inactive.";
-        if (session.BuildInteraction == null || session.BuildInteraction.Pointer != interaction.Pointer)
-            return "Build interaction changed.";
+        if (session.BuildInteraction == null || session.BuildInteraction.Pointer != interaction.Pointer) return "Build interaction changed.";
         if (interaction._session == null || !interaction._session.isMaster) return "Waiting for local world authority.";
         if (!playerContext.TryGetLocalPlayer(out var player) || session.Agent == null || session.Agent.GetCharacter() != player)
             return "Builder is not the current local player.";
@@ -66,86 +109,99 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
     private void PublishStatus()
     {
         reportedMultiplier = Multiplier.Value;
-        StatusReason = $"{reportedMultiplier:0.#}x: {localEvents} local animation events; {scaledRequests} scaled work requests. "
-            + (reportedMultiplier == 1 ? "Normal building speed." : lastDetail);
+        StatusReason = $"{reportedMultiplier:0.#}x: {localEvents} local work events; {boostedEvents} boosted events. {lastDetail}";
     }
 
-    private void RecordEvent(string detail)
+    private static void EventPrefix(BuildSession __instance, string __0, out EventState __state)
     {
-        localEvents = Math.Min(localEvents + 1, 999999);
-        var changed = detail != lastDetail;
-        lastDetail = detail;
-        // Bounded counters and sampled UI text provide evidence without per-event logging.
-        if (changed || localEvents <= 8 || localEvents % 32 == 0) PublishStatus();
-    }
-
-    private static void EventPrefix(BuildSession __instance, out BuildScope __state)
-    {
-        __state = scope;
-        scope = default;
+        var parent = scope;
+        scope = null;
+        WorkEvent? current = null;
         var feature = instance;
-        if (feature is null || feature.Multiplier.Value == 1) return;
-        feature.Hosted?.TryExecute(() =>
-        {
-            if (!feature.playerContext.TryGetLocalPlayer(out var player) || __instance.Agent == null
-                || __instance.Agent.GetCharacter() != player) return;
-            var interaction = __instance.BuildInteraction;
-            var reason = feature.LocalBuildBlockReason(__instance, interaction);
-            feature.RecordEvent(reason ?? (feature.scaledRequests > 0
-                ? "Native building work is being scaled."
-                : "Builder ready; waiting for the native work request."));
-            if (reason is null) scope = new(__instance, interaction.Pointer);
-        });
-    }
-
-    private static Exception? EventFinalizer(Exception? __exception, BuildScope __state)
-    {
-        scope = __state;
-        return __exception;
-    }
-
-    private static void WorkPrefix(BuildInteraction __instance, ref float __0, out TemporaryFloatOverride __state)
-    {
-        __state = default;
-        var feature = instance;
-        if (feature is null || __instance == null || scope.Interaction != __instance.Pointer) return;
-        var current = scope;
-        scope = default;
-        var native = __0;
-        var scaled = native;
-        if (feature.Hosted?.TryExecute(() =>
-        {
-            var reason = feature.LocalBuildBlockReason(current.Session, __instance);
-            if (reason is null)
-                scaled = BuildWorkAmount.Scale(native, feature.Multiplier.Value);
-            else
+        if (feature is not null && feature.Multiplier.Value > 1)
+            feature.Hosted?.TryExecute(() =>
             {
-                feature.lastDetail = reason;
-                feature.PublishStatus();
-            }
-        }) != true || scaled == native) return;
-        // Keep native completion/hit processing; restore the caller's local amount
-        // before its stamina, injury, proficiency and cancellation logic continues.
-        __state = new TemporaryFloatOverride(true, native);
-        __0 = scaled;
-        feature.scaledRequests = Math.Min(feature.scaledRequests + 1, 999999);
-        feature.lastDetail = "Native building work is being scaled.";
-        if (feature.scaledRequests <= 8 || feature.scaledRequests % 32 == 0) feature.PublishStatus();
+                if (!feature.playerContext.TryGetLocalPlayer(out var player) || __instance.Agent == null
+                    || __instance.Agent.GetCharacter() != player) return;
+                var original = __instance.BuildConfig;
+                if (!original || !original.moveset || string.IsNullOrEmpty(original.moveset.animatorDamageEvent)
+                    || !string.Equals(original.moveset.animatorDamageEvent, __0, StringComparison.Ordinal)) return;
+                feature.localEvents = Math.Min(feature.localEvents + 1, 999999);
+                var interaction = __instance.BuildInteraction;
+                var reason = feature.LocalBuildBlockReason(__instance, interaction);
+                if (reason is not null)
+                {
+                    feature.lastDetail = reason;
+                    feature.PublishStatus();
+                    return;
+                }
+                // Read the real getter before publishing the scope. The session cache and shared assets stay native.
+                current = new(feature, __instance, interaction, original, feature.Multiplier.Value);
+                feature.ownedEvents.Add(current);
+                current.Prepare();
+                scope = current;
+            });
+        __state = new(parent, current);
     }
 
-    private static void WorkPostfix(ref float __0, TemporaryFloatOverride __state) => __state.Restore(ref __0);
-
-    private static Exception? WorkFinalizer(Exception? __exception, ref float __0, TemporaryFloatOverride __state)
+    private static void ConfigPostfix(BuildSession __instance, ref PlayerBuildInteractionConfig __result)
     {
-        __state.Restore(ref __0);
+        var current = scope;
+        if (current is null || current.Session.Pointer != __instance.Pointer || __result == null
+            || __result.Pointer != current.Original.Pointer) return;
+        var replace = false;
+        current.Owner.Hosted?.TryExecute(() => replace = current.Replacement != null
+            && current.Owner.LocalBuildBlockReason(__instance, current.Interaction) is null);
+        if (!replace) return;
+        __result = current.Replacement!;
+        current.Substituted = true;
+    }
+
+    private static Exception? EventFinalizer(Exception? __exception, EventState __state)
+    {
+        scope = __state.Parent;
+        var current = __state.Current;
+        if (current is null) return __exception;
+        current.Active = false;
+        try
+        {
+            current.Owner.Hosted?.TryExecute(() => current.Owner.ObserveResult(current));
+        }
+        finally
+        {
+            // The native event has finished with both private objects; cleanup also runs after gating closes.
+            try { current.Release(); }
+            catch (Exception error)
+            {
+                DiagnosticLog.LogError($"Building configuration cleanup failed: {error}");
+                current.Owner.Hosted?.Disable();
+                __exception = __exception is null ? error : new AggregateException(__exception, error);
+            }
+        }
         return __exception;
+    }
+
+    private void ObserveResult(WorkEvent current)
+    {
+        if (current.Substituted) boostedEvents = Math.Min(boostedEvents + 1, 999999);
+        var live = playerContext.TryGetLocalPlayer(out var player) && current.Session.Agent != null
+            && current.Session.Agent.GetCharacter() == player && current.Interaction;
+        lastDetail = live ? $"Last work: {current.Before:0.###} -> {current.Interaction.CurrentBuildVolume:0.###}."
+            : "The building target changed or completed.";
+        PublishStatus();
+        if (reports < 12)
+        {
+            reports++;
+            DiagnosticLog.LogInfo($"Event {localEvents}; multiplier={current.Multiplier:0}; substituted={current.Substituted}; {lastDetail}");
+        }
     }
 
     public override void Disable()
     {
         harmony.UnpatchSelf();
         instance = null;
-        scope = default;
+        foreach (var current in ownedEvents.ToArray()) if (!current.Active) current.Release();
+        if (ownedEvents.Count != 0) throw new InvalidOperationException("Building configuration cleanup is waiting for an active work event.");
         StatusReason = null;
         base.Disable();
     }

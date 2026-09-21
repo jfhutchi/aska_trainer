@@ -1,6 +1,6 @@
-# HutchASKA 0.1.5 development candidate acceptance
+# HutchASKA 0.1.6 development candidate acceptance
 
-Date: 2026-09-14. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
+Updated: 2026-09-21. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
 
 User retest update: 0.1.2 screenshots show readable Player/Items/Crafting panels and 1,136 catalog entries. The user reports approximately 115 FPS; the follow-up Player screenshot shows God Mode, Infinite Stamina, Infinite Hunger and Infinite Thirst checked, with movement Disabled at a saved 1.5x setting. This is user-observed performance, not a controlled benchmark or verification of the native effects. See [retest evidence and remaining limits](readability-performance-repair.md).
 
@@ -8,8 +8,8 @@ User retest update: 0.1.2 screenshots show readable Player/Items/Crafting panels
 
 | Component | Observed |
 | --- | --- |
-| ASKA Steam build | 25186770, local installed manifest |
-| Full game version | 1.43.0809261352._PC.Release, fresh Unity log |
+| ASKA Steam build | 25326768, local installed manifest |
+| Full game version | 1.44.1509261752._PC.Release, fresh Unity log |
 | Application.version | 0.4, deliberately separate from Steam build |
 | Unity | 6000.3.12f1 |
 | BepInEx | 6.0.0-be.755+3fab71a1914132a1ce3a545caf3192da603f2258, IL2CPP |
@@ -18,15 +18,17 @@ User retest update: 0.1.2 screenshots show readable Player/Items/Crafting panels
 | Il2CppInterop | 1.5.1-ci.829+6d9007c18cc8440830379c5e1d5714085e7ec577 |
 | Local build/test tools | SDK 8.0.423, test runtime 6.0.36, PowerShell 7.6.5 |
 
-The installed game still matches the original build target. A future update requires new evidence.
+The game updated from the original target. The replacement building calculation, getter, lifecycle and cost paths were re-inspected against build 25326768. This is not a full gameplay compatibility claim.
 
 ## Automated and static results
 
 | Check | Result |
 | --- | --- |
-| Release core test suite | PASS: 175 tests, zero failures/skips |
-| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.5 |
+| Release core test suite | PASS: 189 tests, zero failures/skips |
+| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.6 |
 | Managed IMGUI unstripping regression | PASS: 78 reachable methods contain no unstripping failure stubs. Native 0.1.3 Close retest pending |
+| Build Speed hook regression | PASS: installed 0.1.5 rejected; replacement uses native event/configuration getter signatures and excludes the withdrawn work-amount hook |
+| Withdrawn item-hook regression | PASS: pre-withdrawal candidate rejected; item decay/wear patch classes absent and both controls refuse activation. Normal decay/wear requires gameplay confirmation |
 | Red/green development | Core scaffold, registry, guard/breaker, settings, catalog, tribe contracts and rescan/reset tests were run failing before implementation and passing after |
 | Runtime isolation | Pure tests cover unknown/multiplayer block, session loss, partial enable, bounded failure and explicit cleanup retry |
 | Native hook scope review | Current local player/owned tribe gates; narrow movement, harvest, temperature, item loss/use, crafting and recruitment callbacks; no arbitrary spawn or achievement patches. Consumable removal patch requires the exact armed use/item/container and passes all other removals through |
@@ -39,9 +41,15 @@ The installed game still matches the original build target. A future update requ
 | Dependency notices | Actual assembly/package versions checked against linked upstream licenses; runtime texts included |
 | Public CI | Configured for pure core; no remote CI run or gameplay result claimed |
 
-Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.5.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
+Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.6.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
 
 ## Startup evidence
+
+The user confirmed movement speed in 0.1.5. Its log records boosted native speed
+and commands. Building then stayed at zero with repeated work-call trampoline
+exceptions, including after 1x was selected. Version 0.1.6 replaces that hook with
+scoped configuration results and needs a fresh process/retest. See
+[0.1.6 evidence](0.1.6-building-retest.md).
 
 The 0.1.4 runtime failed movement acceptance, exposed Build Speed's ambiguous
 property probe and crashed while extending a 20-tile leveling preview. Version

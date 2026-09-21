@@ -6,7 +6,13 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-**Version `0.1.5` is a development candidate, not a gameplay-validated v1 release.** The 0.1.4 retest exposed an inverted movement permission check, a Build Speed startup lookup error and a native crash while expanding a 20-tile leveling preview. This update corrects the two checks and removes expanded-leveling hooks. Normal game leveling remains available; 10x10 and 15x15 were not validated. Freeze Aging and expanded leveling are unavailable. Gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
+Movement was user-confirmed in 0.1.5. Building progress then remained at zero,
+with repeated native-to-managed work-call exceptions. Version 0.1.6 removes that
+work-call hook and scales construction through private per-event settings instead.
+The original work submission, elapsed time, costs and completion stay native.
+Build Speed requires a fresh restart and retest; see [0.1.6 evidence](docs/testing/0.1.6-building-retest.md).
+
+**Version `0.1.6` is a development candidate, not a gameplay-validated v1 release.** It replaces the failing Build Speed hook and withdraws the item-decay/tool-wear hooks after repeated errors in the latest log. Infinite Durability and No Spoilage are temporarily unavailable. Movement retains the user-confirmed 0.1.5 implementation. Freeze Aging and expanded leveling remain unavailable; normal game leveling is available. Gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
 
 The user reported approximately 115 FPS and supplied readable screenshots for 0.1.2 after the earlier readability/performance repair. That observation does not validate the new controls or their FPS impact. See the [0.1.3 retest](docs/testing/movement-harvest-close-retest.md), [release checklist](docs/testing/v1-release-checklist.md), [earlier repair evidence](docs/testing/readability-performance-repair.md) and [implementation ledger](docs/testing/implementation-status.md).
 
@@ -14,12 +20,12 @@ Source projects and local build/install helpers are available. No validated rele
 
 ## Compatibility
 
-These versions were detected in the local Steam manifest, installed assembly metadata and fresh startup logs on 2026-09-14. The initial target remains the installed build. They are **not a tested gameplay release matrix**; startup does not verify behavior in a save.
+These versions were checked on 2026-09-21 using the local Steam manifest, installed assembly metadata and latest game logs. ASKA updated from the original 25186770 target to 25326768; the replacement building calculation and configuration path were re-inspected against the updated native binary. They are **not a tested gameplay release matrix**; startup does not verify behavior in a save.
 
 | Component | Detected version | Evidence |
 | --- | --- | --- |
-| ASKA Steam build | `25186770` | Detected in installed Steam manifest |
-| Full game version | `1.43.0809261352._PC.Release` | Detected in fresh Unity log |
+| ASKA Steam build | `25326768` | Detected in installed Steam manifest |
+| Full game version | `1.44.1509261752._PC.Release` | Detected in fresh Unity log |
 | Application.version | `0.4` | Separate application value, not the Steam build ID |
 | Unity | `6000.3.12f1` | Detected at plugin startup |
 | BepInEx | `6.0.0-be.755`, IL2CPP | Commit `3fab71a1914132a1ce3a545caf3192da603f2258`, detected at startup |
@@ -39,16 +45,16 @@ Implemented controls compile against current local interop signatures and are **
 | Area | Controls and implementation status |
 | --- | --- |
 | Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x and player harvesting presets 1x/2x/3x/4x. Native retests pending |
-| Items | Implemented: runtime catalog/search, native Give Item/Give Stack, durability protection for carried equipment, spoilage protection for carried non-equipment, and retaining local consumables after their normal use effects |
+| Items | Implemented: runtime catalog/search, native Give Item/Give Stack and retaining local consumables after their normal use effects. Infinite Durability and No Spoilage are temporarily disabled after item-processing failures |
 | Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs and player construction work presets 1x/2x/3x/4x. Expanded leveling is disabled after the 0.1.4 preview crash |
 | World | Implemented: Freeze Time, -1/+1 hour, separate game-speed presets 0.5x/1x/2x/5x and Infinite Fuel for campfires/standing torches. Backward time adjustment cannot cross midnight |
 | Tribe | Implemented: current owned-villager damage suppression and cooling/frost protection; independent food/water/energy/rest/happiness maintenance in one shared pass; Heal Entire Tribe; Restore All Needs. Freeze Aging remains Incompatible |
 | Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. Warmth is read-only; age is unavailable |
 | Advanced & Diagnostics | Implemented: Reset All, config reload, compatibility rescan, logging verbosity, optional state persistence, configurable hotkeys, actual Steam build detection, feature states and error reasons |
 
-God Mode must block damage without inflating maximum health. Durability and freshness toggles preserve existing values. Add Items On Use retains quantity instead of duplicating arbitrary items. Recruitment must complete ASKA's normal lifecycle; arbitrary villager spawning is out of scope. Blueprint requirement bypass is optional and depends on a verified narrow hook.
+God Mode must block damage without inflating maximum health. Add Items On Use retains quantity instead of duplicating arbitrary items. Recruitment must complete ASKA's normal lifecycle; arbitrary villager spawning is out of scope. Blueprint requirement bypass is optional and depends on a verified narrow hook.
 
-Durability and spoilage protect existing condition through narrow native loss paths; they do not repair damaged items or refresh spoiled food. Their scope is current local carried/equipped items, not containers or the entire world. Temperature protection prevents further cooling/frost accumulation; existing freezing penalties can remain until normal warming/thawing. Retain Consumables On Use preserves a carried consumable's quantity only after its native player-use effects, including the last item in a stack. Unrelated item spending remains native. Give uses ASKA's native definition-based insertion, checks ownership/capacity, limits quantities to 1-999 and measures the amount actually added. Initialization and save persistence still need acceptance.
+Infinite Durability and No Spoilage cannot activate in 0.1.6, including through restored configuration. Their failing hooks have been removed; normal game wear and spoilage apply. Temperature protection prevents further cooling/frost accumulation; existing freezing penalties can remain until normal warming/thawing. Retain Consumables On Use preserves a carried consumable's quantity only after its native player-use effects, including the last item in a stack. Unrelated item spending remains native. Give uses ASKA's native definition-based insertion, checks ownership/capacity, limits quantities to 1-999 and measures the amount actually added. Initialization and save persistence still need acceptance.
 
 Ignore Crafting Materials waives the temporary recipe-material manifest in the normal local-player crafting path. It leaves consumable blueprint-item costs, unlocks, station eligibility, crafting duration and product creation native; unrelated villager/cooking/forging paths are not automatically covered. Time adjustment changes the clock/weather through the native setter, preserving Freeze Time; it does not simulate an hour of work or survival. Moving forward across midnight uses native day advancement, while backward midnight crossing is refused with a visible reason.
 
@@ -56,7 +62,7 @@ All enabled tribe needs share one update every half second. The batch resolves c
 
 Free Building waives material checks for eligible current construction parts while keeping native work, layers and completion. Disabling rechecks actual supplies; completed work is retained. Free Repairs allows the normal repair-work phase without additional supplies. Any already deposited materials remain committed, and disabling does not revoke a repair phase already granted. Build Speed increases work per player hammer stroke, independently of material requirements.
 
-Expanded-leveling presets are unavailable in 0.1.5: the implementation contains no terrain hooks and cannot activate from saved configuration or rescan. The normal leveling tool is unchanged. The user's 20-tile preview crashed while extending the second side; 10x10 was not attempted. See the [0.1.5 corrective retest](docs/testing/0.1.5-corrective-retest.md).
+Expanded-leveling presets remain unavailable in 0.1.6: the implementation contains no terrain hooks and cannot activate from saved configuration or rescan. The normal leveling tool is unchanged. The user's 20-tile preview crashed while extending the second side; 10x10 was not attempted. See the [0.1.5 corrective retest](docs/testing/0.1.5-corrective-retest.md).
 
 Infinite Fuel prevents fuel drain on owned campfires and standing torches; add starting fuel and light them normally. It does not refill or ignite an empty fire.
 
@@ -115,7 +121,7 @@ Create a local development candidate with PowerShell 7:
 .\scripts\Package-Release.ps1
 ```
 
-Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.5.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.6.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
 
 Repository-relative research/checklist links in the packaged README refer to the matching source checkout identified in BUILDINFO; those source documents are not duplicated in the ZIP.
 

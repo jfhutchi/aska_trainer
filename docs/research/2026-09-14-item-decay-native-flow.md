@@ -1,5 +1,14 @@
 # Item decay and equipment wear: native investigation
 
+## 2026-09-21 status correction
+
+Version 0.1.6 withdraws Infinite Durability and No Spoilage after the latest
+0.1.5 log recorded 688,666 item-decay and 246 equipment-wear trampoline errors.
+Both controls now reject activation and their hook implementations are removed.
+Normal game wear/spoilage applies. Earlier implementation descriptions below
+are historical, not current supported behavior. Replacement item protection is
+outstanding. See [building and item-error evidence](../testing/0.1.6-building-retest.md).
+
 Inspected the user's local ASKA Steam build 25186770, Unity 6000.3.12f1, with
 LibCpp2IL metadata and Capstone disassembly on 2026-09-14. The raw game binary,
 metadata, method map, and disassembly remain outside the repository. This evidence

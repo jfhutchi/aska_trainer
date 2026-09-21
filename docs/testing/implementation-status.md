@@ -1,5 +1,14 @@
 # Ordered implementation ledger
 
+## 2026-09-21 status correction
+
+Version 0.1.6 withdraws Infinite Durability and No Spoilage after the latest
+0.1.5 log recorded 688,666 item-decay and 246 equipment-wear trampoline errors.
+Both controls now reject activation and their hook implementations are removed.
+Normal game wear/spoilage applies. Earlier implementation descriptions below
+are historical, not current supported behavior. Replacement item protection is
+outstanding. See [building and item-error evidence](0.1.6-building-retest.md).
+
 Implementation used the dedicated `codex/hutchaska-implementation` worktree after the user's fresh pull. Main was not edited or merged. Each planned task was handled in order; corrective review commits are retained without rewriting history. The superseded non-final Stage 4 plan was not executed.
 
 “Done” below means implementation, documented conditional fallback and available verification are complete. It does not mean a manual gameplay check passed. All remaining acceptance work is explicitly recorded in the [release checklist](v1-release-checklist.md).
@@ -60,6 +69,14 @@ Input lifecycle review fixes landed with the native Give Item task in 4d525a3 af
 | 8 Final docs/notices/verification | Done for available automated/static/startup work; manual release gate remains blocked | Release checklist and final documentation commit |
 
 ## Remaining external acceptance
+
+Version 0.1.6 records user-confirmed movement in 0.1.5 and repairs the next
+reported failure: native-to-managed work-call exceptions kept building at zero,
+including after 1x was selected. Build Speed now uses private per-event settings
+through the configuration getter; the native work submission stays unpatched.
+189 core tests pass. A new local compiled-hook gate rejects the installed broken
+implementation and passes the replacement. Expanded leveling remains withdrawn.
+See [0.1.6 evidence](0.1.6-building-retest.md); live building retest is pending.
 
 Version 0.1.5 responds to actual 0.1.4 failures: normal movement was blocked by
 an inverted player-input permission check; Build Speed had a shadowed-property
