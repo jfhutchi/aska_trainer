@@ -6,9 +6,9 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-**Version `0.1.7` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.8` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging now offers bite-speed and eligible rare-fish-weight presets
-(1x/2x/4x), Easy Catch and mushroom regrowth. Tribe offers a traits-only recruit
+(1x/2x/4x) and Easy Catch. Mushroom regrowth is unavailable in 0.1.8. Tribe offers a traits-only recruit
 preview and Apply action. These features preserve ordinary gameplay actions;
 the trainer does not set achievements or their progress counters. See the
 [0.1.7 retest](docs/testing/0.1.7-gameplay-assists-retest.md).
@@ -54,7 +54,7 @@ Implemented controls compile against current local interop signatures and are **
 | Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x and player harvesting presets 1x/2x/3x/4x. Native retests pending |
 | Items | Implemented: runtime catalog/search, native Give Item/Give Stack and retaining local consumables after their normal use effects. Infinite Durability and No Spoilage are temporarily disabled after item-processing failures |
 | Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs and player construction work presets 1x/2x/3x/4x. Expanded leveling is disabled after the 0.1.4 preview crash |
-| Fishing & Foraging | New: bite speed 1x/2x/4x, Easy Catch, eligible rare-fish weighting 1x/2x/4x and mushroom regrowth. Normal catch/gather actions remain required; live acceptance pending |
+| Fishing & Foraging | New: bite speed 1x/2x/4x, Easy Catch, eligible rare-fish weighting 1x/2x/4x (mushroom regrowth is unavailable). Normal catch/gather actions remain required; live acceptance pending |
 | World | Implemented: Freeze Time, -1/+1 hour, separate game-speed presets 0.5x/1x/2x/5x and Infinite Fuel for campfires/standing torches. Backward time adjustment cannot cross midnight |
 | Tribe | Implemented: current owned-villager damage suppression and cooling/frost protection; independent food/water/energy/rest/happiness maintenance in one shared pass; Heal Entire Tribe; Restore All Needs. Freeze Aging remains Incompatible |
 | Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. New: preview and apply starting traits to ordinary unsummoned recruit choices, retaining identity/appearance. Warmth is read-only; age is unavailable |
@@ -83,16 +83,12 @@ Rare Fish Boost changes eligible special-fish weights relative to common fish;
 2x/4x is not a promised catch percentage. Normal bait, biome and availability
 rules, item processing and fishing progress events remain in the game path.
 
-Mushroom Regrowth affects only the three verified biome mushroom resources.
-For default weather-driven mushrooms, 2x allows replenishment after one game day
-and 4x after half a game day, while native rain/season checks still apply. This
-uses an explicit two-day reference because the default has no periodic timer.
-Existing finite periodic intervals are accelerated without postponing a sooner
-native date. Season-only/never modes stay native. It replenishes existing patches
-and does not add unlimited new placements. Disabling restores still-owned pending
-dates in the active world; already regrown mushrooms remain. A save made while
-enabled may retain an accelerated native due date, so disable before saving when
-testing restoration across a restart.
+Mushroom Regrowth is unavailable in 0.1.8. Its speed buttons and timer hooks
+are removed, activation is rejected even through restored settings, and its
+multiplier is forced to normal on startup/reload. ASKA saves the accelerated
+deadline but the old implementation retained its restoration value only in
+memory. This update prevents new timer changes; it does not alter existing
+saves or undo mushrooms that already regrew.
 
 In **Tribe**, close the game's recruit-selection screen, then use **Refresh
 recruits**, select an ordinary candidate, **Reroll preview**, and **Apply these

@@ -1,5 +1,17 @@
 # Mushroom regrowth: current native contract
 
+## Withdrawn in 0.1.8
+
+The user requested disabling this control after identifying the autosave issue.
+Native WeatherManager.Serialize (0x180F75690) writes the current replenishment
+date, and Deserialize (0x180F73C70) restores a positive saved date. The 0.1.7
+implementation kept its original deadline only in memory, so reload lost the
+information required to restore a saved accelerated deadline. Version 0.1.8
+removes the preset buttons and native hook, rejects activation, and normalizes
+the multiplier on startup/reload. Existing saves are not modified. The compiled
+regression gate checks refusal and absence of timer writes/hooks. The remaining
+research below records the withdrawn implementation, not an available control.
+
 Verified read-only against installed Steam build 25326768, Unity 6000.3.12f1,
 on 2026-09-21. No game was launched and no save was edited. Raw assets,
 disassembly, and inspection tools remain outside the repository.

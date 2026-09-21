@@ -32,8 +32,8 @@ try {
             throw "Withdrawn item processing hook is still compiled: $withdrawn"
         }
     }
-    foreach ($name in @('InfiniteDurabilityFeature', 'NoSpoilageFeature')) {
-        $itemFeature = $plugin.MainModule.GetType("HutchASKA.Plugin.Items.$name")
+    foreach ($name in @('Items.InfiniteDurabilityFeature', 'Items.NoSpoilageFeature', 'World.MushroomRegrowthFeature')) {
+        $itemFeature = $plugin.MainModule.GetType("HutchASKA.Plugin.$name")
         $probe = $itemFeature.Methods | Where-Object Name -eq 'ProbeCompatibility'
         $enableItem = $itemFeature.Methods | Where-Object Name -eq 'TryEnable'
         if (-not $probe -or -not $enableItem -or
@@ -43,6 +43,13 @@ try {
             throw "$name must reject activation without installing hooks."
         }
     }
+    $mushrooms = $plugin.MainModule.GetType('HutchASKA.Plugin.World.MushroomRegrowthFeature')
+    if (@($mushrooms.Methods | Where-Object { $_.Name -in @('Prepare', 'BeforeWeatherDispatch') }).Count -gt 0 -or
+        @($mushrooms.Methods | Where-Object HasBody | ForEach-Object { $_.Body.Instructions } | Where-Object {
+            $_.Operand -is [Mono.Cecil.MethodReference] -and
+            ($_.Operand.Name -eq 'set_NextReplenishDate' -or $_.Operand.DeclaringType.Namespace -eq 'HarmonyLib')
+        }).Count -gt 0) { throw 'Withdrawn mushroom timer hook remains compiled.' }
+    Write-Output 'PASS: Mushroom regrowth rejects activation and contains no timer writes or hooks.'
     Write-Output 'PASS: Build Speed uses the local event/configuration hooks and does not reference the withdrawn primitive-byref work hook. Native progress still requires a game test.'
     Write-Output 'PASS: The failing item decay/wear hooks are absent and their controls reject activation.'
 }

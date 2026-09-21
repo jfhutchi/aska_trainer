@@ -52,7 +52,7 @@ internal sealed class RuntimeConfiguration
         FishingBiteSpeed = config.Bind("Fishing", "BiteSpeed", 1, "Bite wait speed: 1 (normal), 2 or 4.");
         FishingRareWeight = config.Bind("Fishing", "RareFishWeight", 1, "Eligible rare-fish selection weight: 1 (normal), 2 or 4. Not a guaranteed catch percentage.");
         FishingEasyCatch = config.Bind("Fishing", "EasyCatch", false, "Longer reaction time and improved valid catches while Fishing Assists is enabled.");
-        MushroomRegrowth = config.Bind("Foraging", "MushroomRegrowth", 1, "Eligible mushroom regrowth speed: 1 (normal), 2 or 4.");
+        MushroomRegrowth = config.Bind("Foraging", "MushroomRegrowth", 1, "Unavailable pending autosave-safe timers. Forced to 1 (normal).");
         Verbosity = config.Bind("Diagnostics", "LoggingVerbosity", DiagnosticVerbosity.Normal, "Trainer diagnostics only: ErrorsOnly, Normal or Verbose. Errors are always logged.");
         Verbosity.SettingChanged += (_, _) => host.Verbosity = Verbosity.Value;
         host.Verbosity = Verbosity.Value;
@@ -129,7 +129,8 @@ internal sealed class RuntimeConfiguration
         fishing.BiteSpeed.Value = AssistPreset(FishingBiteSpeed.Value);
         fishing.RareWeight.Value = AssistPreset(FishingRareWeight.Value);
         fishing.EasyCatch = FishingEasyCatch.Value;
-        mushrooms.Multiplier.Value = AssistPreset(MushroomRegrowth.Value);
+        mushrooms.Multiplier.Reset();
+        MushroomRegrowth.Value = 1;
     }
 
     private static int AssistPreset(int value) => value >= 4 ? 4 : value >= 2 ? 2 : 1;

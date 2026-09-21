@@ -4,6 +4,11 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.8 development candidate
+
+- Withdrew mushroom regrowth because autosaves can retain an accelerated deadline without its original restoration value. Removed its speed buttons and native timer hook; compatibility checks and direct activation both refuse it, including restored settings. The multiplier is forced to normal on startup/reload.
+- This prevents new timer modifications; it does not rewrite existing saves or reverse previously completed regrowth. Fishing and recruit controls remain available.
+
 ### Changed in 0.1.7 development candidate
 
 - Added a Fishing & Foraging tab with normal/2x/4x bite-speed and eligible rare-fish weighting controls, plus Easy Catch. Casting, reeling, bait, loot and fishing progress continue through the native game actions.

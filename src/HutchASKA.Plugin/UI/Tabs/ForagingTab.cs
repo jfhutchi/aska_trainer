@@ -39,15 +39,7 @@ internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature
         var mushroomFeature = controls.Get("world.mushrooms");
         GUILayout.Space(12);
         GUILayout.Label($"Mushrooms [{mushroomFeature.State}]");
-        GUI.enabled = previous && controls.CanChange(mushroomFeature);
-        try
-        {
-            if (Preset("Regrowth Speed", mushrooms.Multiplier, value => config.MushroomRegrowth.Value = value))
-                controls.Set(mushroomFeature, mushrooms.Multiplier.Value > 1);
-        }
-        finally { GUI.enabled = previous; }
-        GUILayout.Label("For weather-driven mushrooms: 2x allows regrowth after one game day; 4x after half a day. Rain and season rules still apply.");
-        GUILayout.Label("Existing periodic regrowth is sped up by the selected amount. Pick mushrooms normally to complete gathering actions.");
+        GUILayout.Label($"Regrowth Speed: {mushrooms.Multiplier.Value:0}x / Normal (unavailable)");
         if (mushroomFeature.StatusReason is { } mushroomReason) GUILayout.Label(mushroomReason);
     }
 
