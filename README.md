@@ -8,7 +8,9 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 Version 0.1.12 keeps the readable opaque menu and active gameplay toggles working
 when ASKA returns to its main menu and starts or loads another single-player world.
-Weather remains a per-world choice. Version 0.1.11 adds Rare Fish Anywhere, which removes the local rare-fish-school
+The main-menu/new-world transition, Free Building rearm and menu controls were
+user-confirmed in the 0.1.12 native retest. Weather remains a per-world choice.
+Version 0.1.11 adds Rare Fish Anywhere, which removes the local rare-fish-school
 requirement while retaining native bait, season and biome checks. Version 0.1.10
 corrects Tribe Movement Speed eligibility while retaining native
 speed for swimming, vehicles, ladders and special link traversal. Version 0.1.9
