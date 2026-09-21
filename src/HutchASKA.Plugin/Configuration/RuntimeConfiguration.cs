@@ -5,6 +5,7 @@ using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
 using HutchASKA.Plugin.Tribe;
+using HutchASKA.Core.Compatibility;
 
 namespace HutchASKA.Plugin.Configuration;
 
@@ -24,6 +25,8 @@ internal sealed class RuntimeConfiguration
     private readonly TribeHarvestSpeedFeature tribeHarvesting;
     private readonly TribeMovementSpeedFeature tribeMovement;
     private readonly Dictionary<string, ConfigEntry<bool>> enabled = new();
+    private readonly SinglePlayerTransitionTracker sessionTransitions = new();
+    private string[] rearmAfterTransition = Array.Empty<string>();
     private bool restored;
     public ConfigEntry<bool> RestoreStates { get; }
     public ConfigEntry<float> Movement { get; }
@@ -91,12 +94,30 @@ internal sealed class RuntimeConfiguration
         foreach (var feature in host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal) && f.Id != "world.weather"))
             enabled[feature.Id] = config.Bind("Enabled", feature.Id, false, "Used only when RestoreEnabledStatesOnLaunch is enabled.");
     }
-    public void TryRestore(SinglePlayerGuard guard)
+    public SinglePlayerTransition UpdateSession(SinglePlayerGuard guard)
     {
-        if (restored || !guard.Refresh().Allowed) return;
-        restored = true;
-        if (!RestoreStates.Value) return;
-        foreach (var pair in enabled) if (pair.Value.Value) host.Registry.Find(pair.Key)?.TryEnable();
+        var transition = sessionTransitions.Observe(guard.Refresh().Allowed);
+        if (transition == SinglePlayerTransition.LeftConfirmed)
+        {
+            rearmAfterTransition = host.Registry.Snapshot()
+                .Where(feature => feature.State == FeatureState.Enabled
+                    && !feature.Id.StartsWith("ui.", StringComparison.Ordinal)
+                    && feature.Id != "world.weather")
+                .Select(feature => feature.Id)
+                .ToArray();
+        }
+        else if (transition == SinglePlayerTransition.ReturnedConfirmed)
+        {
+            foreach (var id in rearmAfterTransition) host.Registry.Find(id)?.TryEnable();
+            rearmAfterTransition = Array.Empty<string>();
+        }
+        else if (transition == SinglePlayerTransition.FirstConfirmed && !restored)
+        {
+            restored = true;
+            if (RestoreStates.Value)
+                foreach (var pair in enabled) if (pair.Value.Value) host.Registry.Find(pair.Key)?.TryEnable();
+        }
+        return transition;
     }
     public void Remember(ITrainerFeature feature)
     {

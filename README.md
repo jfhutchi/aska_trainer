@@ -6,7 +6,9 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Version 0.1.11 adds Rare Fish Anywhere, which removes the local rare-fish-school
+Version 0.1.12 keeps the readable opaque menu and active gameplay toggles working
+when ASKA returns to its main menu and starts or loads another single-player world.
+Weather remains a per-world choice. Version 0.1.11 adds Rare Fish Anywhere, which removes the local rare-fish-school
 requirement while retaining native bait, season and biome checks. Version 0.1.10
 corrects Tribe Movement Speed eligibility while retaining native
 speed for swimming, vehicles, ladders and special link traversal. Version 0.1.9
@@ -38,7 +40,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.11` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.12` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.
@@ -62,11 +64,11 @@ Source projects and local build/install helpers are available. No validated rele
 
 ## Compatibility
 
-These versions were checked on 2026-09-21 using the local Steam manifest, installed assembly metadata and latest game logs. ASKA updated from the original 25186770 target to 25326768; the replacement building calculation and configuration path were re-inspected against the updated native binary. They are **not a tested gameplay release matrix**; startup does not verify behavior in a save.
+These versions were checked on 2026-09-21 using the local Steam manifest, installed assembly metadata and latest game logs. ASKA updated from the original 25186770 target to 25440748; the replacement building calculation and configuration path were re-inspected against the updated native binary. They are **not a tested gameplay release matrix**; startup does not verify behavior in a save.
 
 | Component | Detected version | Evidence |
 | --- | --- | --- |
-| ASKA Steam build | `25326768` | Detected in installed Steam manifest |
+| ASKA Steam build | `25440748` | Detected in installed Steam manifest and HutchASKA 0.1.11 startup log |
 | Full game version | `1.44.1509261752._PC.Release` | Detected in fresh Unity log |
 | Application.version | `0.4` | Separate application value, not the Steam build ID |
 | Unity | `6000.3.12f1` | Detected at plugin startup |

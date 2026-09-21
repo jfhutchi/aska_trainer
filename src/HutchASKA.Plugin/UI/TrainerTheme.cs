@@ -8,13 +8,18 @@ internal sealed class TrainerTheme : IDisposable
 {
     private readonly List<Texture2D> textures = new();
     private GUISkin? skin;
+    private int sourceIdentity;
     public GUISkin Skin => skin ?? throw new InvalidOperationException("Trainer theme is not initialized.");
     public GUIStyle SelectedTab { get; private set; } = null!;
 
     public void Initialize(GUISkin source)
     {
-        if (skin is not null) return;
+        var identity = source.GetInstanceID();
+        if (skin is not null && skin && sourceIdentity == identity && textures.All(texture => texture)) return;
+        Dispose();
         skin = NativeObject.Instantiate(source).Cast<GUISkin>();
+        skin.hideFlags = HideFlags.HideAndDontSave;
+        sourceIdentity = identity;
         var panel = Solid(new Color(0.055f, 0.075f, 0.10f, 1));
         var control = Solid(new Color(0.17f, 0.22f, 0.28f, 1));
         var hover = Solid(new Color(0.24f, 0.34f, 0.42f, 1));
@@ -51,6 +56,7 @@ internal sealed class TrainerTheme : IDisposable
     private Texture2D Solid(Color color)
     {
         var texture = new Texture2D(1, 1);
+        texture.hideFlags = HideFlags.HideAndDontSave;
         textures.Add(texture);
         texture.SetPixel(0, 0, color);
         texture.Apply(false, true);
@@ -77,9 +83,10 @@ internal sealed class TrainerTheme : IDisposable
 
     public void Dispose()
     {
-        if (skin is not null) NativeObject.Destroy(skin);
+        if (skin is not null && skin) NativeObject.Destroy(skin);
         skin = null;
-        foreach (var texture in textures) NativeObject.Destroy(texture);
+        sourceIdentity = 0;
+        foreach (var texture in textures) if (texture) NativeObject.Destroy(texture);
         textures.Clear();
     }
 }

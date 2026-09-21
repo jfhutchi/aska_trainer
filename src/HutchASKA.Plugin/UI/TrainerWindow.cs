@@ -98,6 +98,8 @@ internal sealed class TrainerWindow
 
     public void ReleaseResources() => theme.Dispose();
 
+    public void InvalidateResources() => theme.Dispose();
+
     public void UpdateContext()
     {
         if (!guard.Decision.Allowed) { itemsTab.Clear(); tribeTab.Clear(); }

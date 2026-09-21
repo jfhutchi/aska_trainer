@@ -4,6 +4,13 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Fixed in 0.1.12 development candidate
+
+- Rebuild the owned opaque trainer skin after leaving a confirmed world and whenever ASKA replaces its active IMGUI skin. Runtime-created skin textures now opt out of Unity's unused-resource unloading, so returning to the main menu and entering another world cannot silently remove the readable backgrounds.
+- Preserve active gameplay toggles across the temporary loss of single-player confirmation during a main-menu/new-world transition, then rearm them only after the new world is independently confirmed as single-player. Weather remains a per-world selection and is not replayed.
+- Sample the session guard once per frame so every feature sees the same transition decision. Treat an already-unloaded frozen world as completed cleanup instead of faulting Freeze Time while no stale object can be modified.
+- Add transition-policy regressions for initial confirmation, world departure, repeated unconfirmed frames and return confirmation.
+
 ### Changed in 0.1.11 development candidate
 
 - Added Rare Fish Anywhere. During an eligible local fishing selection it removes the rare-fish-school location requirement while retaining native bait, season, biome, bite, catch, inventory and progress processing. Rare Fish Boost still controls relative selection weight and does not guarantee every catch.

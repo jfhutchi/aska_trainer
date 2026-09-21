@@ -6,6 +6,7 @@ using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Input;
 using HutchASKA.Core.Features;
 using HutchASKA.Core.Input;
+using HutchASKA.Core.Compatibility;
 
 namespace HutchASKA.Plugin.UI;
 
@@ -39,7 +40,8 @@ public sealed class TrainerBehaviour(IntPtr pointer) : MonoBehaviour(pointer)
     public void Update()
     {
         if (menuKey is not null && UnityEngine.Input.GetKeyDown(menuKey.Value)) SetVisible(!visible);
-        if (guard is not null) config?.TryRestore(guard);
+        if (guard is not null && config?.UpdateSession(guard) == SinglePlayerTransition.LeftConfirmed)
+            window?.InvalidateResources();
         hotkeys?.Tick();
         if (visible && menuInput is not null) FeatureInputActions.EnsureEnabled(menuInput);
         host?.Tick();
