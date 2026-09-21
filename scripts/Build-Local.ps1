@@ -29,3 +29,4 @@ dotnet build (Join-Path $PSScriptRoot '..\src\HutchASKA.Plugin\HutchASKA.Plugin.
 if ($LASTEXITCODE -ne 0) { throw "Plugin build failed with exit code $LASTEXITCODE" }
 & (Join-Path $PSScriptRoot 'Test-LocalGuiInterop.ps1') -AskaGameDir $resolved
 & (Join-Path $PSScriptRoot 'Test-LocalBuildSpeedInterop.ps1') -AskaGameDir $resolved
+& (Join-Path $PSScriptRoot 'Test-LocalSkillGainInterop.ps1') -AskaGameDir $resolved

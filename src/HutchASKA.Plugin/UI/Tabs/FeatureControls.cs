@@ -25,4 +25,25 @@ internal sealed class FeatureControls(FeatureHost host, SinglePlayerGuard guard,
         if (enabled) feature.TryEnable(); else feature.Disable();
         config.Remember(feature);
     }
+
+    internal void MultiplierPresets(string id, MultiplierSetting setting, int maximum, Action<int> remember)
+    {
+        var feature = Get(id);
+        GUILayout.Label($"{feature.DisplayName}: {setting.Value:0}x [{feature.State}]");
+        var previous = GUI.enabled;
+        GUI.enabled = previous && CanChange(feature);
+        GUILayout.BeginHorizontal();
+        try
+        {
+            for (var value = 1; value <= maximum; value++)
+            {
+                if (!GUILayout.Button(value == 1 ? "1x / Normal" : $"{value}x")) continue;
+                setting.Value = value;
+                remember(value);
+                Set(feature, value > 1);
+            }
+        }
+        finally { GUILayout.EndHorizontal(); GUI.enabled = previous; }
+        if (feature.StatusReason is { } reason) GUILayout.Label(reason);
+    }
 }

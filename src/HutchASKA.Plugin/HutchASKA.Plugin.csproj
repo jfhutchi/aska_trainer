@@ -20,6 +20,7 @@
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.AnimationModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AIModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.AIModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.InputLegacyModule"><HintPath>$(ASKA_GAME_DIR)/BepInEx/interop/UnityEngine.InputLegacyModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
   <Target Name="ValidateAskaReferences" BeforeTargets="PrepareForBuild">

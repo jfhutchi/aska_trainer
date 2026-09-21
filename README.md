@@ -6,6 +6,27 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Pending local update: Player Skill Gain and Tribe Skill Gain have separate
+normal/2x/3x/4x/5x presets. The Tribe tab also offers independent Build Speed and
+Harvest Speed presets for current owned tribe members, plus ground Movement
+Speed presets through 5x. Player Harvesting Speed
+is in Fishing & Foraging, and the menu uses the game-window height with small
+top/bottom margins. These changes require in-game acceptance after installation;
+the installed 0.1.8 session does not receive source edits while running.
+
+Skill gain multiplies positive experience earned through ASKA's normal award
+routine, including work, fishing and combat. It leaves native level-up and cap
+checks intact. Normal/reset stops future bonuses; already earned experience
+and completed work remain normal game progress and can be saved. Tribe build
+and tool-harvest presets increase work per action, not walking or animation
+speed. They do not bypass material requirements or multiply item quantities.
+Tribe Movement Speed affects ordinary ground navigation; swimming, vehicles,
+ladders and special link traversal remain native. Acceleration and pathfinding
+remain under game control. Existing tribe protections and needs are separate
+toggles, while Free Building/Free Repairs already operate on shared eligible
+structures. Fishing assists and consumable-retention transactions remain scoped
+to the player; the parity audit records further villager-specific work.
+
 **Version `0.1.8` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging now offers bite-speed and eligible rare-fish-weight presets
 (1x/2x/4x) and Easy Catch. Mushroom regrowth is unavailable in 0.1.8. Tribe offers a traits-only recruit
@@ -51,10 +72,10 @@ Implemented controls compile against current local interop signatures and are **
 
 | Area | Controls and implementation status |
 | --- | --- |
-| Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x and player harvesting presets 1x/2x/3x/4x. Native retests pending |
+| Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x. Native retests pending |
 | Items | Implemented: runtime catalog/search, native Give Item/Give Stack and retaining local consumables after their normal use effects. Infinite Durability and No Spoilage are temporarily disabled after item-processing failures |
 | Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs and player construction work presets 1x/2x/3x/4x. Expanded leveling is disabled after the 0.1.4 preview crash |
-| Fishing & Foraging | New: bite speed 1x/2x/4x, Easy Catch, eligible rare-fish weighting 1x/2x/4x (mushroom regrowth is unavailable). Normal catch/gather actions remain required; live acceptance pending |
+| Fishing & Foraging | Player harvesting presets 1x/2x/3x/4x; new: bite speed 1x/2x/4x, Easy Catch, eligible rare-fish weighting 1x/2x/4x (mushroom regrowth is unavailable). Normal catch/gather actions remain required; live acceptance pending |
 | World | Implemented: Freeze Time, -1/+1 hour, separate game-speed presets 0.5x/1x/2x/5x and Infinite Fuel for campfires/standing torches. Backward time adjustment cannot cross midnight |
 | Tribe | Implemented: current owned-villager damage suppression and cooling/frost protection; independent food/water/energy/rest/happiness maintenance in one shared pass; Heal Entire Tribe; Restore All Needs. Freeze Aging remains Incompatible |
 | Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. New: preview and apply starting traits to ordinary unsummoned recruit choices, retaining identity/appearance. Warmth is read-only; age is unavailable |

@@ -61,6 +61,17 @@ Inspection found an unusual `ldind.i` conversion in the installed bridge's by-re
 
 ## Validation
 
+During the user's 0.1.8 test on 2026-09-21, the log recorded native build volume
+advancing from 0 to 10 at 2x and another layer reaching 10 at 4x. No prior work
+submission trampoline exception appeared in that session's log. A screenshot
+showed the untranslated prompt `interact.AskaBuild(Clone)_message`.
+`PlayerBuildInteractionConfig.GetLocalizationStrings` delegates to the native
+object-based localization builder. The prepared correction preserves the original
+configuration and moveset names on private clones before substitution, avoiding
+Unity's appended `(Clone)` in name-derived localization keys. This correction is
+not yet installed or visually verified. Full structure completion and return to
+1x still require user confirmation.
+
 Core tests cover the work formula at all four presets, zero and signed coefficients, repeated scaling from the original values, invalid inputs and overflow. Integration reported a warning-free build and 189 passing core tests for the replacement. The independent review inspected clone ownership, nested scopes, reentrant disable, the cached native getter and the native cost/proficiency/injury paths. No gameplay result is implied by these checks.
 
 Required gameplay acceptance:

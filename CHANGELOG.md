@@ -4,6 +4,15 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Prepared for the next development candidate
+
+- Added independent player and tribe skill-experience presets: normal, 2x, 3x, 4x and 5x, applying only to positive earned awards through the native proficiency path. Normal level-up and cap handling remains active.
+- Added tribe-wide construction and gathering/tool-harvesting presets, normal through 5x, restricted to current owned members and their normal work actions.
+- Added separate tribe ground Movement Speed presets, normal through 5x, retaining native acceleration/pathfinding and excluding swimming, vehicles, ladders and special traversal.
+- Moved player Harvesting Speed to Fishing & Foraging and expanded the menu to the game-window height with 20-pixel top/bottom margins.
+- Preserved original names on private building configuration copies to prevent untranslated `(Clone)` interaction prompts.
+- These changes are prepared source changes pending the user's end-of-session update; live acceptance is outstanding. The requested higher rare-fish presets are tracked separately for that update.
+
 ### Changed in 0.1.8 development candidate
 
 - Withdrew mushroom regrowth because autosaves can retain an accelerated deadline without its original restoration value. Removed its speed buttons and native timer hook; compatibility checks and direct activation both refuse it, including restored settings. The multiplier is forced to normal on startup/reload.

@@ -3,6 +3,7 @@ using HutchASKA.Core.Features;
 using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
+using HutchASKA.Plugin.Tribe;
 
 namespace HutchASKA.Plugin.Configuration;
 
@@ -17,6 +18,10 @@ internal sealed class RuntimeConfiguration
     private readonly TerrainLevelingFeature terrain;
     private readonly FishingAssistFeature fishing;
     private readonly MushroomRegrowthFeature mushrooms;
+    private readonly SkillGainFeature playerSkills, tribeSkills;
+    private readonly TribeBuildSpeedFeature tribeBuilding;
+    private readonly TribeHarvestSpeedFeature tribeHarvesting;
+    private readonly TribeMovementSpeedFeature tribeMovement;
     private readonly Dictionary<string, ConfigEntry<bool>> enabled = new();
     private bool restored;
     public ConfigEntry<bool> RestoreStates { get; }
@@ -29,10 +34,17 @@ internal sealed class RuntimeConfiguration
     public ConfigEntry<int> FishingRareWeight { get; }
     public ConfigEntry<bool> FishingEasyCatch { get; }
     public ConfigEntry<int> MushroomRegrowth { get; }
+    public ConfigEntry<int> PlayerSkillGain { get; }
+    public ConfigEntry<int> TribeSkillGain { get; }
+    public ConfigEntry<int> TribeBuildSpeed { get; }
+    public ConfigEntry<int> TribeHarvestSpeed { get; }
+    public ConfigEntry<int> TribeMovementSpeed { get; }
     public ConfigEntry<DiagnosticVerbosity> Verbosity { get; }
     public event Action? TransientStateCleared;
     public RuntimeConfiguration(ConfigFile config, FeatureHost host, MovementSpeedFeature movement, GameSpeedFeature speed, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain,
-        FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms)
+        FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms, SkillGainFeature playerSkills,
+        SkillGainFeature tribeSkills, TribeBuildSpeedFeature tribeBuilding, TribeHarvestSpeedFeature tribeHarvesting,
+        TribeMovementSpeedFeature tribeMovement)
     {
         this.host = host;
         this.config = config;
@@ -43,6 +55,11 @@ internal sealed class RuntimeConfiguration
         this.terrain = terrain;
         this.fishing = fishing;
         this.mushrooms = mushrooms;
+        this.playerSkills = playerSkills;
+        this.tribeSkills = tribeSkills;
+        this.tribeBuilding = tribeBuilding;
+        this.tribeHarvesting = tribeHarvesting;
+        this.tribeMovement = tribeMovement;
         RestoreStates = config.Bind("General", "RestoreEnabledStatesOnLaunch", false, "Opt in to restoring previously selected cheats after single-player confirmation.");
         Movement = config.Bind("Player", "MovementMultiplier", 1f, "Movement multiplier, 1 to 5.");
         GameSpeed = config.Bind("World", "GameSpeedMultiplier", 1f, "Game speed multiplier, 0.5 to 5.");
@@ -53,6 +70,11 @@ internal sealed class RuntimeConfiguration
         FishingRareWeight = config.Bind("Fishing", "RareFishWeight", 1, "Eligible rare-fish selection weight: 1 (normal), 2 or 4. Not a guaranteed catch percentage.");
         FishingEasyCatch = config.Bind("Fishing", "EasyCatch", false, "Longer reaction time and improved valid catches while Fishing Assists is enabled.");
         MushroomRegrowth = config.Bind("Foraging", "MushroomRegrowth", 1, "Unavailable pending autosave-safe timers. Forced to 1 (normal).");
+        PlayerSkillGain = config.Bind("Player", "SkillGainMultiplier", 1, "Player earned skill experience: 1 (normal) to 5. Native caps remain.");
+        TribeSkillGain = config.Bind("Tribe", "SkillGainMultiplier", 1, "Owned villagers' earned skill experience: 1 (normal) to 5. Native caps remain.");
+        TribeBuildSpeed = config.Bind("Tribe", "BuildSpeedMultiplier", 1, "Owned villagers' construction work: 1 (normal) to 5.");
+        TribeHarvestSpeed = config.Bind("Tribe", "HarvestSpeedMultiplier", 1, "Owned villagers' gathering and tool-harvesting work: 1 (normal) to 5.");
+        TribeMovementSpeed = config.Bind("Tribe", "MovementSpeedMultiplier", 1, "Owned villagers' ordinary ground movement: 1 (normal) to 5. Special traversal remains native.");
         Verbosity = config.Bind("Diagnostics", "LoggingVerbosity", DiagnosticVerbosity.Normal, "Trainer diagnostics only: ErrorsOnly, Normal or Verbose. Errors are always logged.");
         Verbosity.SettingChanged += (_, _) => host.Verbosity = Verbosity.Value;
         host.Verbosity = Verbosity.Value;
@@ -81,7 +103,8 @@ internal sealed class RuntimeConfiguration
         var gameplay = host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal)
             || f is HostedFeature { HasPendingCleanup: true }).ToArray();
         FeatureReset.ResetAll(gameplay, movement.Multiplier, speed.Multiplier, harvesting.Multiplier, building.Multiplier,
-            fishing.BiteSpeed, fishing.RareWeight, mushrooms.Multiplier);
+            fishing.BiteSpeed, fishing.RareWeight, mushrooms.Multiplier, playerSkills.Multiplier,
+            tribeSkills.Multiplier, tribeBuilding.Multiplier, tribeHarvesting.Multiplier, tribeMovement.Multiplier);
         foreach (var feature in gameplay) Remember(feature);
         Movement.Value = 1;
         GameSpeed.Value = 1;
@@ -94,6 +117,8 @@ internal sealed class RuntimeConfiguration
         FishingEasyCatch.Value = false;
         fishing.EasyCatch = false;
         MushroomRegrowth.Value = 1;
+        PlayerSkillGain.Value = TribeSkillGain.Value = TribeBuildSpeed.Value = TribeHarvestSpeed.Value = 1;
+        TribeMovementSpeed.Value = 1;
         restored = true;
         TransientStateCleared?.Invoke();
         host.Trace("Reset All completed; inspect diagnostics for any remaining native cleanup failure.");
@@ -131,6 +156,11 @@ internal sealed class RuntimeConfiguration
         fishing.EasyCatch = FishingEasyCatch.Value;
         mushrooms.Multiplier.Reset();
         MushroomRegrowth.Value = 1;
+        playerSkills.Multiplier.Value = Math.Clamp(PlayerSkillGain.Value, 1, 5);
+        tribeSkills.Multiplier.Value = Math.Clamp(TribeSkillGain.Value, 1, 5);
+        tribeBuilding.Multiplier.Value = Math.Clamp(TribeBuildSpeed.Value, 1, 5);
+        tribeHarvesting.Multiplier.Value = Math.Clamp(TribeHarvestSpeed.Value, 1, 5);
+        tribeMovement.Multiplier.Value = Math.Clamp(TribeMovementSpeed.Value, 1, 5);
     }
 
     private static int AssistPreset(int value) => value >= 4 ? 4 : value >= 2 ? 2 : 1;

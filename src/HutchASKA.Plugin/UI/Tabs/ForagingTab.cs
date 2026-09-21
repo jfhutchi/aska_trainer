@@ -7,7 +7,7 @@ using UnityEngine;
 namespace HutchASKA.Plugin.UI.Tabs;
 
 internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature fishing,
-    MushroomRegrowthFeature mushrooms, RuntimeConfiguration config)
+    MushroomRegrowthFeature mushrooms, HarvestSpeedFeature harvesting, RuntimeConfiguration config)
 {
     private static readonly int[] Presets = { 1, 2, 4 };
 
@@ -35,6 +35,25 @@ internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature
         GUILayout.Label("Cast and reel in normally. Easy Catch gives you longer to react and improves a valid catch.");
         GUILayout.Label("Rare Fish Boost changes eligible fish selection. It does not guarantee a rare fish on every cast.");
         if (fishFeature.StatusReason is { } fishingReason) GUILayout.Label(fishingReason);
+
+        GUILayout.Space(12);
+        var harvestFeature = controls.Get("player.harvest");
+        GUILayout.Label($"Harvesting Speed: {harvesting.Multiplier.Value:0}x [{harvestFeature.State}]");
+        GUI.enabled = previous && controls.CanChange(harvestFeature);
+        GUILayout.BeginHorizontal();
+        try
+        {
+            for (var multiplier = 1; multiplier <= 4; multiplier++)
+            {
+                if (!GUILayout.Button(multiplier == 1 ? "1x / Normal" : $"{multiplier}x")) continue;
+                harvesting.Multiplier.Value = multiplier;
+                config.HarvestSpeed.Value = multiplier;
+                controls.Set(harvestFeature, multiplier != 1);
+            }
+        }
+        finally { GUILayout.EndHorizontal(); GUI.enabled = previous; }
+        GUILayout.Label("Player gathering and tool harvesting. Gathering changes apply to the next cycle; crops and fishing are unchanged.");
+        if (harvestFeature.StatusReason is { } harvestReason) GUILayout.Label(harvestReason);
 
         var mushroomFeature = controls.Get("world.mushrooms");
         GUILayout.Space(12);

@@ -3,36 +3,36 @@ extern alias UnityCore;
 using BepInEx.Logging;
 using HarmonyLib;
 using HutchASKA.Core.Features;
-using HutchASKA.Core.Player;
+using HutchASKA.Core.Tribe;
 using HutchASKA.Plugin.Game;
 using HutchASKA.Plugin.Infrastructure;
 using SSSGame;
-using BuildSession = SSSGame.PlayerBuildInteractionConfig.PlayerBuildInteractionSession;
+using BuildSession = SSSGame.VillagerBuildInteractionConfig.VillagerBuildSession;
 using NativeObject = UnityCore::UnityEngine.Object;
 
-namespace HutchASKA.Plugin.Player;
+namespace HutchASKA.Plugin.Tribe;
 
-internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature("player.buildspeed", "Build Speed")
+internal sealed class TribeBuildSpeedFeature(ITribeContext tribe) : NativeFeature("tribe.buildspeed", "Build Speed")
 {
-    private readonly IPlayerContext playerContext = players;
-    private readonly Harmony harmony = new(Plugin.PluginGuid + ".buildspeed");
-    private static readonly ManualLogSource DiagnosticLog = BepInEx.Logging.Logger.CreateLogSource("HutchASKA.BuildSpeed");
+    private readonly ITribeContext tribeContext = tribe;
+    private readonly Harmony harmony = new(Plugin.PluginGuid + ".tribebuildspeed");
+    private static readonly ManualLogSource DiagnosticLog = BepInEx.Logging.Logger.CreateLogSource("HutchASKA.TribeBuildSpeed");
     private readonly List<WorkEvent> ownedEvents = new();
-    private static BuildSpeedFeature? instance;
+    private static TribeBuildSpeedFeature? instance;
     [ThreadStatic] private static WorkEvent? scope;
     private int localEvents, boostedEvents, reports;
     private float reportedMultiplier;
     private string lastDetail = "Waiting for a building work event.";
-    public MultiplierSetting Multiplier { get; } = new(1, 4);
+    public MultiplierSetting Multiplier { get; } = new(1, 5);
 
-    private sealed class WorkEvent(BuildSpeedFeature owner, BuildSession session, BuildInteraction interaction,
-        PlayerBuildInteractionConfig original, float multiplier)
+    private sealed class WorkEvent(TribeBuildSpeedFeature owner, BuildSession session, BuildInteraction interaction,
+        VillagerBuildInteractionConfig original, float multiplier)
     {
-        public BuildSpeedFeature Owner { get; } = owner;
+        public TribeBuildSpeedFeature Owner { get; } = owner;
         public BuildSession Session { get; } = session;
         public BuildInteraction Interaction { get; } = interaction;
-        public PlayerBuildInteractionConfig Original { get; } = original;
-        public PlayerBuildInteractionConfig? Replacement { get; private set; }
+        public VillagerBuildInteractionConfig Original { get; } = original;
+        public VillagerBuildInteractionConfig? Replacement { get; private set; }
         private InteractionMoveset? replacementMoveset;
         public bool Active { get; set; } = true;
         public bool Substituted { get; set; }
@@ -43,14 +43,15 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
         {
             var moveset = Original.moveset;
             if (!moveset) throw new InvalidOperationException("Building moveset is unavailable.");
-            var work = new BuildWorkCoefficients(moveset.baseUnarmedDamage, moveset.damageMultiplier).Scale(Multiplier);
-            Replacement = NativeObject.Instantiate(Original).Cast<PlayerBuildInteractionConfig>();
+            var baseWork = TribeWorkSpeedMath.ScaleCoefficient(moveset.baseUnarmedDamage, Multiplier);
+            var attributeMultiplier = TribeWorkSpeedMath.ScaleCoefficient(moveset.damageMultiplier, Multiplier);
+            Replacement = NativeObject.Instantiate(Original).Cast<VillagerBuildInteractionConfig>();
             // Native interaction prompts derive localization keys from the configuration name.
             Replacement.name = Original.name;
             replacementMoveset = NativeObject.Instantiate(moveset).Cast<InteractionMoveset>();
             replacementMoveset.name = moveset.name;
-            replacementMoveset.baseUnarmedDamage = work.BaseWork;
-            replacementMoveset.damageMultiplier = work.AttributeMultiplier;
+            replacementMoveset.baseUnarmedDamage = baseWork;
+            replacementMoveset.damageMultiplier = attributeMultiplier;
             Replacement.moveset = replacementMoveset;
         }
 
@@ -70,16 +71,16 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
     public override CompatibilityResult ProbeCompatibility() =>
         AccessTools.DeclaredMethod(typeof(BuildSession), "_OnAnimatorEvent", new[] { typeof(string) })?.ReturnType == typeof(void)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "BuildConfig")?.GetMethod is { ReturnType: var configType }
-        && configType == typeof(PlayerBuildInteractionConfig)
-        && AccessTools.DeclaredProperty(typeof(BuildSession), "Agent")?.PropertyType == typeof(PlayerInteractionAgent)
+        && configType == typeof(VillagerBuildInteractionConfig)
+        && typeof(BuildSession).GetProperty("Agent")?.PropertyType == typeof(IInteractionAgent)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "BuildInteraction")?.PropertyType == typeof(BuildInteraction)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "_actionStarted")?.PropertyType == typeof(bool)
         && AccessTools.DeclaredProperty(typeof(BuildSession), "_targetMatched")?.PropertyType == typeof(bool)
-        && typeof(PlayerBuildInteractionConfig).GetProperty("moveset")?.CanWrite == true
+        && typeof(VillagerBuildInteractionConfig).GetProperty("moveset")?.CanWrite == true
         && typeof(InteractionMoveset).GetProperty("baseUnarmedDamage")?.CanWrite == true
         && typeof(InteractionMoveset).GetProperty("damageMultiplier")?.CanWrite == true
         ? CompatibilityResult.Compatible()
-        : CompatibilityResult.Incompatible("Local building configuration or work coefficient API is unavailable.");
+        : CompatibilityResult.Incompatible("Villager building configuration or work coefficient API is unavailable.");
 
     public override bool TryEnable()
     {
@@ -88,31 +89,31 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
         lastDetail = "Waiting for a building work event.";
         PublishStatus();
         harmony.Patch(AccessTools.DeclaredMethod(typeof(BuildSession), "_OnAnimatorEvent"),
-            prefix: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(EventPrefix)),
-            finalizer: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(EventFinalizer)));
+            prefix: new HarmonyMethod(typeof(TribeBuildSpeedFeature), nameof(EventPrefix)),
+            finalizer: new HarmonyMethod(typeof(TribeBuildSpeedFeature), nameof(EventFinalizer)));
         harmony.Patch(AccessTools.DeclaredProperty(typeof(BuildSession), "BuildConfig").GetMethod,
-            postfix: new HarmonyMethod(typeof(BuildSpeedFeature), nameof(ConfigPostfix)));
+            postfix: new HarmonyMethod(typeof(TribeBuildSpeedFeature), nameof(ConfigPostfix)));
         DiagnosticLog.LogInfo($"Enabled {Multiplier.Value:0}x building; native work submission remains unpatched.");
         return base.TryEnable();
     }
 
-    private string? LocalBuildBlockReason(BuildSession session, BuildInteraction? interaction)
+    private string? BuildBlockReason(BuildSession session, BuildInteraction? interaction)
     {
         if (session.SessionState != InteractionSessionState.RUNNING) return "Build session is not running.";
-        if (!session._targetMatched) return "Player has not reached the building position.";
+        if (!session._targetMatched) return "Villager has not reached the building position.";
         if (!session._actionStarted) return "Building action has not started.";
         if (interaction == null || !interaction.isActiveAndEnabled) return "Build interaction is inactive.";
         if (session.BuildInteraction == null || session.BuildInteraction.Pointer != interaction.Pointer) return "Build interaction changed.";
         if (interaction._session == null || !interaction._session.isMaster) return "Waiting for local world authority.";
-        if (!playerContext.TryGetLocalPlayer(out var player) || session.Agent == null || session.Agent.GetCharacter() != player)
-            return "Builder is not the current local player.";
+        if (session.Agent == null || !tribeContext.IsCurrentVillager(session.Agent))
+            return "Builder is not a current owned villager.";
         return null;
     }
 
     private void PublishStatus()
     {
         reportedMultiplier = Multiplier.Value;
-        StatusReason = $"{reportedMultiplier:0.#}x: {localEvents} local work events; {boostedEvents} boosted events. {lastDetail}";
+        StatusReason = $"{reportedMultiplier:0.#}x: {localEvents} tribe work events; {boostedEvents} boosted events. {lastDetail}";
     }
 
     private static void EventPrefix(BuildSession __instance, string __0, out EventState __state)
@@ -124,14 +125,13 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
         if (feature is not null && feature.Multiplier.Value > 1)
             feature.Hosted?.TryExecute(() =>
             {
-                if (!feature.playerContext.TryGetLocalPlayer(out var player) || __instance.Agent == null
-                    || __instance.Agent.GetCharacter() != player) return;
+                if (__instance.Agent == null || !feature.tribeContext.IsCurrentVillager(__instance.Agent)) return;
                 var original = __instance.BuildConfig;
                 if (!original || !original.moveset || string.IsNullOrEmpty(original.moveset.animatorDamageEvent)
                     || !string.Equals(original.moveset.animatorDamageEvent, __0, StringComparison.Ordinal)) return;
                 feature.localEvents = Math.Min(feature.localEvents + 1, 999999);
                 var interaction = __instance.BuildInteraction;
-                var reason = feature.LocalBuildBlockReason(__instance, interaction);
+                var reason = feature.BuildBlockReason(__instance, interaction);
                 if (reason is not null)
                 {
                     feature.lastDetail = reason;
@@ -147,14 +147,14 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
         __state = new(parent, current);
     }
 
-    private static void ConfigPostfix(BuildSession __instance, ref PlayerBuildInteractionConfig __result)
+    private static void ConfigPostfix(BuildSession __instance, ref VillagerBuildInteractionConfig __result)
     {
         var current = scope;
         if (current is null || current.Session.Pointer != __instance.Pointer || __result == null
             || __result.Pointer != current.Original.Pointer) return;
         var replace = false;
         current.Owner.Hosted?.TryExecute(() => replace = current.Replacement != null
-            && current.Owner.LocalBuildBlockReason(__instance, current.Interaction) is null);
+            && current.Owner.BuildBlockReason(__instance, current.Interaction) is null);
         if (!replace) return;
         __result = current.Replacement!;
         current.Substituted = true;
@@ -187,8 +187,7 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
     private void ObserveResult(WorkEvent current)
     {
         if (current.Substituted) boostedEvents = Math.Min(boostedEvents + 1, 999999);
-        var live = playerContext.TryGetLocalPlayer(out var player) && current.Session.Agent != null
-            && current.Session.Agent.GetCharacter() == player && current.Interaction;
+        var live = current.Session.Agent != null && tribeContext.IsCurrentVillager(current.Session.Agent) && current.Interaction;
         lastDetail = live ? $"Last work: {current.Before:0.###} -> {current.Interaction.CurrentBuildVolume:0.###}."
             : "The building target changed or completed.";
         PublishStatus();
@@ -216,3 +215,4 @@ internal sealed class BuildSpeedFeature(IPlayerContext players) : NativeFeature(
 
     public override void Reset() { Disable(); Multiplier.Reset(); }
 }
+

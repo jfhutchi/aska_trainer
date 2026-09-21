@@ -1,12 +1,16 @@
 using HutchASKA.Core.Tribe;
 using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.Tribe;
+using HutchASKA.Plugin.Player;
+using HutchASKA.Plugin.Configuration;
 using UnityEngine;
 
 namespace HutchASKA.Plugin.UI.Tabs;
 
 internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard, VillagerEditorService editor,
-    TribeRestoreFeature heal, TribeRestoreFeature restore, RecruitRerollPanel reroll)
+    TribeRestoreFeature heal, TribeRestoreFeature restore, RecruitRerollPanel reroll,
+    SkillGainFeature skills, TribeBuildSpeedFeature building, TribeHarvestSpeedFeature harvesting,
+    TribeMovementSpeedFeature movement, RuntimeConfiguration config)
 {
     private IReadOnlyList<VillagerSnapshot> villagers = Array.Empty<VillagerSnapshot>();
     private IReadOnlyList<VillagerSnapshot> matches = Array.Empty<VillagerSnapshot>();
@@ -19,6 +23,11 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
 
     public void Draw()
     {
+        controls.MultiplierPresets(skills.Id, skills.Multiplier, 5, value => config.TribeSkillGain.Value = value);
+        controls.MultiplierPresets(building.Id, building.Multiplier, 5, value => config.TribeBuildSpeed.Value = value);
+        controls.MultiplierPresets(harvesting.Id, harvesting.Multiplier, 5, value => config.TribeHarvestSpeed.Value = value);
+        controls.MultiplierPresets(movement.Id, movement.Multiplier, 5, value => config.TribeMovementSpeed.Value = value);
+        GUILayout.Label("Applies to current tribe members. Skill limits, material requirements and normal tasks still apply.");
         foreach (var id in new[] { "tribe.god", "tribe.food", "tribe.water", "tribe.temperature", "tribe.energy", "tribe.rest", "tribe.happiness", "tribe.aging" })
             controls.Toggle(id);
         controls.Toggle("tribe.recruitment");

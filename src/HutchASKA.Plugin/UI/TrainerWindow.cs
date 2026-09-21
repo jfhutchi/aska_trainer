@@ -35,17 +35,20 @@ internal sealed class TrainerWindow
         MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain,
         FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms, AskaItemCatalog catalog, GiveItemFeature give,
         VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe, RecruitRerollFeature reroll,
+        SkillGainFeature playerSkills, SkillGainFeature tribeSkills, TribeBuildSpeedFeature tribeBuilding, TribeHarvestSpeedFeature tribeHarvesting,
+        TribeMovementSpeedFeature tribeMovement,
         DiagnosticsService diagnosticsService, Action<Exception> reportRenderError)
     {
         this.guard = guard;
         renderGuard = new CallbackGuard(reportRenderError);
         var controls = new FeatureControls(host, guard, config);
-        playerTab = new PlayerTab(controls, movement, harvesting, config);
+        playerTab = new PlayerTab(controls, movement, playerSkills, config);
         worldTab = new WorldTab(controls, speed, timeStep, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls, building, terrain, config);
-        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe, new RecruitRerollPanel(reroll, controls));
-        foragingTab = new ForagingTab(controls, fishing, mushrooms, config);
+        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe, new RecruitRerollPanel(reroll, controls),
+            tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, config);
+        foragingTab = new ForagingTab(controls, fishing, mushrooms, harvesting, config);
         diagnostics = new DiagnosticsTab(diagnosticsService);
         advanced = new AdvancedTab(config, diagnosticsService);
         config.TransientStateCleared += ClearTransientState;
@@ -64,9 +67,9 @@ internal sealed class TrainerWindow
     private void DrawWindow()
     {
         bounds.width = Mathf.Min(960, Screen.width - 20);
-        bounds.height = Mathf.Min(620, Screen.height - 20);
+        bounds.height = Mathf.Max(1, Screen.height - 40);
         bounds.x = Mathf.Clamp(bounds.x, 0, Mathf.Max(0, Screen.width - bounds.width));
-        bounds.y = Mathf.Clamp(bounds.y, 0, Mathf.Max(0, Screen.height - bounds.height));
+        bounds.y = Mathf.Min(20, Mathf.Max(0, Screen.height - bounds.height));
         var previousSkin = GUI.skin;
         var previousColor = GUI.color;
         var previousContent = GUI.contentColor;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace HutchASKA.Plugin.UI.Tabs;
 
-internal sealed class PlayerTab(FeatureControls controls, MovementSpeedFeature movement, HarvestSpeedFeature harvesting, RuntimeConfiguration config)
+internal sealed class PlayerTab(FeatureControls controls, MovementSpeedFeature movement, SkillGainFeature skills, RuntimeConfiguration config)
 {
     internal void Draw()
     {
@@ -28,22 +28,7 @@ internal sealed class PlayerTab(FeatureControls controls, MovementSpeedFeature m
         }
         GUI.enabled = previous;
         if (feature.StatusReason is { } reason) GUILayout.Label(reason);
-        var harvestFeature = controls.Get("player.harvest");
-        GUILayout.Label($"Harvesting Speed: {harvesting.Multiplier.Value:0}x [{harvestFeature.State}]");
-        GUI.enabled = previous && controls.CanChange(harvestFeature);
-        GUILayout.BeginHorizontal();
-        try
-        {
-            for (var multiplier = 1; multiplier <= 4; multiplier++)
-            {
-                if (!GUILayout.Button(multiplier == 1 ? "1x / Normal" : $"{multiplier}x")) continue;
-                harvesting.Multiplier.Value = multiplier;
-                config.HarvestSpeed.Value = multiplier;
-                controls.Set(harvestFeature, multiplier != 1);
-            }
-        }
-        finally { GUILayout.EndHorizontal(); GUI.enabled = previous; }
-        GUILayout.Label("Player gathering and tool harvesting. Gathering changes apply to the next cycle; crops and fishing are unchanged.");
-        if (harvestFeature.StatusReason is { } harvestReason) GUILayout.Label(harvestReason);
+        controls.MultiplierPresets(skills.Id, skills.Multiplier, 5, value => config.PlayerSkillGain.Value = value);
+        GUILayout.Label("Multiplies skill experience earned through normal actions. Existing skill limits still apply.");
     }
 }

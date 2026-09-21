@@ -75,6 +75,16 @@ public sealed class Plugin : BasePlugin
         var repairs = new FreeRepairsFeature();
         repairs.Hosted = host.Register(repairs);
         var tribe = new AskaTribeContext(Players, guard, error => Log.LogError($"Tribe discovery: {error}"));
+        var playerSkills = new SkillGainFeature(Players, tribe, false);
+        playerSkills.Hosted = host.Register(playerSkills);
+        var tribeSkills = new SkillGainFeature(Players, tribe, true);
+        tribeSkills.Hosted = host.Register(tribeSkills);
+        var tribeBuilding = new TribeBuildSpeedFeature(tribe);
+        tribeBuilding.Hosted = host.Register(tribeBuilding);
+        var tribeHarvesting = new TribeHarvestSpeedFeature(tribe);
+        tribeHarvesting.Hosted = host.Register(tribeHarvesting);
+        var tribeMovement = new TribeMovementSpeedFeature(tribe);
+        tribeMovement.Hosted = host.Register(tribeMovement);
         var needs = new TribeNeedsCoordinator(tribe);
         var tribeGod = new VillagerGodModeFeature(tribe);
         tribeGod.Hosted = host.Register(tribeGod);
@@ -96,7 +106,8 @@ public sealed class Plugin : BasePlugin
         restoreTribe.Hosted = host.Register(restoreTribe);
         var editor = new VillagerEditorService(tribe);
         editor.Hosted = host.Register(editor);
-        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain, fishing, mushrooms);
+        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain, fishing, mushrooms,
+            playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement);
         var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -104,7 +115,8 @@ public sealed class Plugin : BasePlugin
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion,
             SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
         var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, fishing, mushrooms, catalog, give, editor, healTribe, restoreTribe, reroll, diagnostics,
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, fishing, mushrooms, catalog, give, editor, healTribe, restoreTribe, reroll,
+            playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, diagnostics,
             error => Log.LogError($"Trainer rendering failed; the menu is disabled until restart. Cursor and menu input will be released. {error}"));
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
