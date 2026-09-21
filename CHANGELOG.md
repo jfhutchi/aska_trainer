@@ -4,6 +4,14 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### Changed in 0.1.7 development candidate
+
+- Added a Fishing & Foraging tab with normal/2x/4x bite-speed and eligible rare-fish weighting controls, plus Easy Catch. Casting, reeling, bait, loot and fishing progress continue through the native game actions.
+- Added mushroom-only regrowth controls. Finite native intervals are divided by the preset. Default weather-driven mushrooms use a two-day reference (2x: one game day; 4x: half a game day), retaining native availability checks. Season-only and never-regrow modes remain native.
+- Added explicit upcoming-recruit trait previews and application through the Tribe panel, preserving candidate identity and appearance. Existing villagers are outside this action's scope.
+- New controls default off/normal and participate in Reset All and configuration reload. Manual recruit rerolls are never replayed automatically.
+- These are development features requiring gameplay and achievement-progress acceptance; no platform achievement or progress-counter hooks were added. The prior construction retest and unavailable features remain documented separately.
+
 ### Changed in 0.1.6 development candidate
 
 - Recorded user-confirmed movement speed in 0.1.5, corroborated by native speed samples of 5 to 10 at 2x.

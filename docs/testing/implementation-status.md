@@ -1,5 +1,16 @@
 # Ordered implementation ledger
 
+## 0.1.7 gameplay assists
+
+The approved fishing, mushroom-regrowth and recruit-trait work is implemented in
+isolated feature modules. Fishing retains native catch/loot/deed processing;
+mushrooms use three verified resources and bounded weather scheduling; recruit
+traits are previewed and explicitly applied only to a still-current ordinary
+choice. Root integrated the menu, defaults, reset/reload and registration.
+The combined suite passes 220 cases. Independent subsystem and integration
+reviews are recorded in the research documents and implementation plan.
+Live acceptance remains required; see [0.1.7 checks](0.1.7-gameplay-assists-retest.md).
+
 ## 2026-09-21 status correction
 
 Version 0.1.6 withdraws Infinite Durability and No Spoilage after the latest

@@ -6,13 +6,20 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Movement was user-confirmed in 0.1.5. Building progress then remained at zero,
-with repeated native-to-managed work-call exceptions. Version 0.1.6 removes that
-work-call hook and scales construction through private per-event settings instead.
-The original work submission, elapsed time, costs and completion stay native.
-Build Speed requires a fresh restart and retest; see [0.1.6 evidence](docs/testing/0.1.6-building-retest.md).
+**Version `0.1.7` is a development candidate requiring gameplay acceptance.**
+Fishing & Foraging now offers bite-speed and eligible rare-fish-weight presets
+(1x/2x/4x), Easy Catch and mushroom regrowth. Tribe offers a traits-only recruit
+preview and Apply action. These features preserve ordinary gameplay actions;
+the trainer does not set achievements or their progress counters. See the
+[0.1.7 retest](docs/testing/0.1.7-gameplay-assists-retest.md).
 
-**Version `0.1.6` is a development candidate, not a gameplay-validated v1 release.** It replaces the failing Build Speed hook and withdraws the item-decay/tool-wear hooks after repeated errors in the latest log. Infinite Durability and No Spoilage are temporarily unavailable. Movement retains the user-confirmed 0.1.5 implementation. Freeze Aging and expanded leveling remain unavailable; normal game leveling is available. Gameplay acceptance remains **MANUAL VERIFICATION REQUIRED**. All cheats start off on first installation; automatic restoration of enabled states defaults to off.
+Movement retains the user-confirmed 0.1.5 implementation. The 0.1.6 replacement
+for stalled building progress remains in place and still needs a fresh gameplay
+retest; see [building evidence](docs/testing/0.1.6-building-retest.md).
+Infinite Durability and No Spoilage remain unavailable after item-processing
+errors. Freeze Aging and expanded leveling also remain unavailable. Normal game
+wear, spoilage and leveling apply. All cheats start off on first installation;
+automatic restoration of enabled states defaults to off.
 
 The user reported approximately 115 FPS and supplied readable screenshots for 0.1.2 after the earlier readability/performance repair. That observation does not validate the new controls or their FPS impact. See the [0.1.3 retest](docs/testing/movement-harvest-close-retest.md), [release checklist](docs/testing/v1-release-checklist.md), [earlier repair evidence](docs/testing/readability-performance-repair.md) and [implementation ledger](docs/testing/implementation-status.md).
 
@@ -47,14 +54,15 @@ Implemented controls compile against current local interop signatures and are **
 | Player | Implemented: God Mode, infinite stamina, independent hunger/thirst, protection against further cooling/frost, on-foot movement 1.0x-5.0x and player harvesting presets 1x/2x/3x/4x. Native retests pending |
 | Items | Implemented: runtime catalog/search, native Give Item/Give Stack and retaining local consumables after their normal use effects. Infinite Durability and No Spoilage are temporarily disabled after item-processing failures |
 | Crafting & Building | Implemented: Ignore Crafting Materials, Free Building, Free Repairs and player construction work presets 1x/2x/3x/4x. Expanded leveling is disabled after the 0.1.4 preview crash |
+| Fishing & Foraging | New: bite speed 1x/2x/4x, Easy Catch, eligible rare-fish weighting 1x/2x/4x and mushroom regrowth. Normal catch/gather actions remain required; live acceptance pending |
 | World | Implemented: Freeze Time, -1/+1 hour, separate game-speed presets 0.5x/1x/2x/5x and Infinite Fuel for campfires/standing torches. Backward time adjustment cannot cross midnight |
 | Tribe | Implemented: current owned-villager damage suppression and cooling/frost protection; independent food/water/energy/rest/happiness maintenance in one shared pass; Heal Entire Tribe; Restore All Needs. Freeze Aging remains Incompatible |
-| Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. Warmth is read-only; age is unavailable |
+| Villagers | Implemented: name/ID search, fresh-ID resolution, changed-field-only health/food/water/energy/rest/happiness edits, Heal/Max Needs/Apply, and instant normal recruitment through the pending owned outlet's native completion. New: preview and apply starting traits to ordinary unsummoned recruit choices, retaining identity/appearance. Warmth is read-only; age is unavailable |
 | Advanced & Diagnostics | Implemented: Reset All, config reload, compatibility rescan, logging verbosity, optional state persistence, configurable hotkeys, actual Steam build detection, feature states and error reasons |
 
 God Mode must block damage without inflating maximum health. Add Items On Use retains quantity instead of duplicating arbitrary items. Recruitment must complete ASKA's normal lifecycle; arbitrary villager spawning is out of scope. Blueprint requirement bypass is optional and depends on a verified narrow hook.
 
-Infinite Durability and No Spoilage cannot activate in 0.1.6, including through restored configuration. Their failing hooks have been removed; normal game wear and spoilage apply. Temperature protection prevents further cooling/frost accumulation; existing freezing penalties can remain until normal warming/thawing. Retain Consumables On Use preserves a carried consumable's quantity only after its native player-use effects, including the last item in a stack. Unrelated item spending remains native. Give uses ASKA's native definition-based insertion, checks ownership/capacity, limits quantities to 1-999 and measures the amount actually added. Initialization and save persistence still need acceptance.
+Infinite Durability and No Spoilage cannot activate in 0.1.7, including through restored configuration. Their failing hooks have been removed; normal game wear and spoilage apply. Temperature protection prevents further cooling/frost accumulation; existing freezing penalties can remain until normal warming/thawing. Retain Consumables On Use preserves a carried consumable's quantity only after its native player-use effects, including the last item in a stack. Unrelated item spending remains native. Give uses ASKA's native definition-based insertion, checks ownership/capacity, limits quantities to 1-999 and measures the amount actually added. Initialization and save persistence still need acceptance.
 
 Ignore Crafting Materials waives the temporary recipe-material manifest in the normal local-player crafting path. It leaves consumable blueprint-item costs, unlocks, station eligibility, crafting duration and product creation native; unrelated villager/cooking/forging paths are not automatically covered. Time adjustment changes the clock/weather through the native setter, preserving Freeze Time; it does not simulate an hour of work or survival. Moving forward across midnight uses native day advancement, while backward midnight crossing is refused with a visible reason.
 
@@ -62,9 +70,44 @@ All enabled tribe needs share one update every half second. The batch resolves c
 
 Free Building waives material checks for eligible current construction parts while keeping native work, layers and completion. Disabling rechecks actual supplies; completed work is retained. Free Repairs allows the normal repair-work phase without additional supplies. Any already deposited materials remain committed, and disabling does not revoke a repair phase already granted. Build Speed increases work per player hammer stroke, independently of material requirements.
 
-Expanded-leveling presets remain unavailable in 0.1.6: the implementation contains no terrain hooks and cannot activate from saved configuration or rescan. The normal leveling tool is unchanged. The user's 20-tile preview crashed while extending the second side; 10x10 was not attempted. See the [0.1.5 corrective retest](docs/testing/0.1.5-corrective-retest.md).
+Expanded-leveling presets remain unavailable in 0.1.7: the implementation contains no terrain hooks and cannot activate from saved configuration or rescan. The normal leveling tool is unchanged. The user's 20-tile preview crashed while extending the second side; 10x10 was not attempted. See the [0.1.5 corrective retest](docs/testing/0.1.5-corrective-retest.md).
 
 Infinite Fuel prevents fuel drain on owned campfires and standing torches; add starting fuel and light them normally. It does not refill or ignite an empty fire.
+
+## Fishing, mushrooms and recruit traits
+
+Open **Fishing & Foraging** for the new presets. Faster bites shorten the native
+wait; Easy Catch extends the reaction window fourfold and removes the random
+failed-catch roll after a valid bite. Casting and reeling remain necessary.
+Rare Fish Boost changes eligible special-fish weights relative to common fish;
+2x/4x is not a promised catch percentage. Normal bait, biome and availability
+rules, item processing and fishing progress events remain in the game path.
+
+Mushroom Regrowth affects only the three verified biome mushroom resources.
+For default weather-driven mushrooms, 2x allows replenishment after one game day
+and 4x after half a game day, while native rain/season checks still apply. This
+uses an explicit two-day reference because the default has no periodic timer.
+Existing finite periodic intervals are accelerated without postponing a sooner
+native date. Season-only/never modes stay native. It replenishes existing patches
+and does not add unlimited new placements. Disabling restores still-owned pending
+dates in the active world; already regrown mushrooms remain. A save made while
+enabled may retain an accelerated native due date, so disable before saving when
+testing restoration across a restart.
+
+In **Tribe**, close the game's recruit-selection screen, then use **Refresh
+recruits**, select an ordinary candidate, **Reroll preview**, and **Apply these
+traits**. Reopen the normal recruitment screen to review and summon. This uses
+native compatible perk generation and preserves name, definition, appearance and
+portrait. A changed choice or active summon invalidates a preview. Ordinary
+multi-choice recruitment is supported; special/single-choice and lost-villager
+summons are excluded. Unchosen choices are regenerated by normal game loading;
+confirm your selected recruit normally before relying on selected-data persistence.
+Established villagers are unaffected. Rerolls only happen on explicit clicks.
+
+Native evidence: [fishing](docs/research/2026-09-21-fishing-native-flow.md),
+[mushroom regrowth](docs/research/2026-09-21-mushroom-regrowth.md), and
+[recruit traits](docs/research/2026-09-21-recruit-reroll.md). Native analysis and
+passing builds are not confirmation of gameplay or platform achievement unlocks.
 
 ## Requirements
 

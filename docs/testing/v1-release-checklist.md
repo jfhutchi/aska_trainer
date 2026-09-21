@@ -1,4 +1,4 @@
-# HutchASKA 0.1.6 development candidate acceptance
+# HutchASKA 0.1.7 development candidate acceptance
 
 Updated: 2026-09-21. **NOT RELEASE-READY: MANUAL VERIFICATION REQUIRED.** No save was selected or modified by the implementation agent. This checklist separates automated/source evidence from gameplay acceptance.
 
@@ -24,8 +24,8 @@ The game updated from the original target. The replacement building calculation,
 
 | Check | Result |
 | --- | --- |
-| Release core test suite | PASS: 189 tests, zero failures/skips |
-| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.6 |
+| Release core test suite | PASS: 220 tests, zero failures/skips |
+| Local plugin build using actual installation references | PASS: zero warnings/errors, both authored assemblies version 0.1.7 |
 | Managed IMGUI unstripping regression | PASS: 78 reachable methods contain no unstripping failure stubs. Native 0.1.3 Close retest pending |
 | Build Speed hook regression | PASS: installed 0.1.5 rejected; replacement uses native event/configuration getter signatures and excludes the withdrawn work-amount hook |
 | Withdrawn item-hook regression | PASS: pre-withdrawal candidate rejected; item decay/wear patch classes absent and both controls refuse activation. Normal decay/wear requires gameplay confirmation |
@@ -41,7 +41,15 @@ The game updated from the original target. The replacement building calculation,
 | Dependency notices | Actual assembly/package versions checked against linked upstream licenses; runtime texts included |
 | Public CI | Configured for pure core; no remote CI run or gameplay result claimed |
 
-Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.6.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
+Final packaged source commit is recorded in ZIP `BUILDINFO.txt`. The current candidate name is `artifacts/HutchASKA-v0.1.7.zip`; it is a local candidate, not a published release. Its exact nine files are the two authored DLLs, README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt, and three runtime-license texts under licenses/. Runtime dependencies, game binaries/assets, configuration, PDBs and saves are absent.
+
+## New 0.1.7 acceptance
+
+Fishing, mushroom regrowth and recruit previews are implemented and source-reviewed,
+but have not been exercised in a live save. Follow [the focused 0.1.7 checks](0.1.7-gameplay-assists-retest.md).
+The 31 new pure cases cover fishing arithmetic/restoration, mushroom identity/dates
+and recruit identity/perk validation. Existing GUI and withdrawn-hook gates pass.
+These are not platform achievement or gameplay success claims.
 
 ## Startup evidence
 
@@ -105,12 +113,15 @@ Use a backed-up/disposable single-player save. Record actual versions, enable/di
 | Runtime error isolation | MANUAL VERIFICATION REQUIRED: broken feature faults visibly without repeated native exceptions or disabling unrelated features |
 | Temperature (player/tribe) | MANUAL VERIFICATION REQUIRED: prevents further cooling/frost, preserves warming/thawing, current owned scope, disable. Existing freezing is not cured; warmth editing remains read-only |
 | -1/+1 hour | MANUAL VERIFICATION REQUIRED: same-day steps, native forward-midnight carry, backward-midnight rejection, freeze preserved, lighting/weather/events |
-| Durability / freshness | MANUAL VERIFICATION REQUIRED: partially worn tools/carried perishables preserve condition, independent toggles, normal decay after disable, repairs, equipment/drop/storage and save/reload |
+| Durability / freshness | Unavailable/Incompatible: failing native item-decay/wear hooks were withdrawn in 0.1.6. Normal game wear/spoilage applies |
 | Retain Consumables On Use | MANUAL VERIFICATION REQUIRED: native effects and animation, one-item/larger stacks, unrelated spending, disable and save/reload |
 | Ignore Crafting Materials | MANUAL VERIFICATION REQUIRED: zero materials, existing station/player materials unchanged, locked recipes and blueprint costs preserved, cancellation, native output, disable and persistence |
 | Free Building / Free Repairs | MANUAL VERIFICATION REQUIRED: zero/partial supplies, native work/layers/completion, disable, cancellation and save/reload. Granted repair work remains available after disabling |
 | Age editing / Freeze Aging | Unavailable/Incompatible: inspected lifetime modifier is initialized for golems, not a confirmed ordinary-villager aging hook |
 | Instant normal recruitment | MANUAL VERIFICATION REQUIRED: two normal recruits, costs/names/traits/AI/population/save, owned settlement, disable and no runaway repetition |
+| Fishing assists | MANUAL VERIFICATION REQUIRED: bite presets, valid easy catches, rare selection eligibility, native bait/loot/deed behavior, mid-cast disable and unequip |
+| Mushroom regrowth | MANUAL VERIFICATION REQUIRED: exact three resource types, normal/periodic/weather-only schedules, native eligibility, disable and save/reload |
+| Recruit trait preview | MANUAL VERIFICATION REQUIRED: ordinary multi-choice identity preserved, explicit Apply, stale/pending choice rejection, native menu reopening, summoned traits and selected-data persistence |
 | Steam achievements | Source audit: no API manipulation; actual ASKA mod/achievement behavior is not guaranteed |
 
 Stage-specific procedures remain in [Stage 1](stage-1-smoke-test.md), [Stage 2](stage-2-smoke-test.md), [Stage 3](stage-3-smoke-test.md) and [Stage 4](stage-4-smoke-test.md). Current incompatible features fail closed as authorized; none are presented as working cheats. Manual checks and uncertain native hook semantics are the remaining external/runtime work.

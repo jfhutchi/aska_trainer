@@ -1,7 +1,9 @@
 # Fishing, mushroom availability and recruit rerolls
 
-Proposed controls, researched against the installed ASKA Steam build 25326768
-on 2026-09-21. No gameplay hooks or saved game data were changed for this proposal.
+Approved controls, researched against the installed ASKA Steam build 25326768
+on 2026-09-21. The user accepted this setup on 2026-09-21. The proposal itself
+did not change gameplay hooks or saved game data; implementation is tracked in
+[the implementation plan](../superpowers/plans/2026-09-21-gameplay-assists.md).
 
 ## Objective
 
@@ -51,9 +53,9 @@ new ground objects. Existing-world changes need separate save/reload validation.
 ## Proposed third increment: recruits
 
 A manual Reroll Recruit control presents a new recruit result before summoning.
-The user is being asked whether to reroll starting attributes/traits while keeping
-appearance, regenerate the entire candidate, or edit selected values directly.
-The recommended first scope is starting traits/bonuses on a pending recruit.
+The approved first scope is starting traits/bonuses on an unsummoned candidate,
+keeping the candidate's definition, name and appearance. A preview is generated
+before explicitly applying the replacement traits to the upcoming choice.
 Exact attribute derivation and valid perk combinations need further tracing.
 
 VillagerOutlet exposes GenerateNewVillagerChoices and GenerateDescriptionData.

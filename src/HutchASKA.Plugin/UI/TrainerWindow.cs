@@ -20,19 +20,21 @@ internal sealed class TrainerWindow
     private readonly ItemsTab itemsTab;
     private readonly CraftingTab craftingTab;
     private readonly TribeTab tribeTab;
+    private readonly ForagingTab foragingTab;
     private readonly GUI.WindowFunction drawContents;
     private readonly CallbackGuard renderGuard;
     private readonly TrainerTheme theme = new();
     private readonly string[] tabs =
-        { "Player", "Items", "Crafting & Building", "World", "Tribe", "Advanced", "Diagnostics" };
+        { "Player", "Items", "Crafting & Building", "World", "Fishing & Foraging", "Tribe", "Advanced", "Diagnostics" };
     private Rect bounds = new(20, 20, 960, 620);
     private Vector2 scroll;
     private int selectedTab;
     private bool closeRequested;
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
-        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain, AskaItemCatalog catalog, GiveItemFeature give,
-        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe,
+        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain,
+        FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms, AskaItemCatalog catalog, GiveItemFeature give,
+        VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe, RecruitRerollFeature reroll,
         DiagnosticsService diagnosticsService, Action<Exception> reportRenderError)
     {
         this.guard = guard;
@@ -42,7 +44,8 @@ internal sealed class TrainerWindow
         worldTab = new WorldTab(controls, speed, timeStep, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls, building, terrain, config);
-        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe);
+        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe, new RecruitRerollPanel(reroll, controls));
+        foragingTab = new ForagingTab(controls, fishing, mushrooms, config);
         diagnostics = new DiagnosticsTab(diagnosticsService);
         advanced = new AdvancedTab(config, diagnosticsService);
         config.TransientStateCleared += ClearTransientState;
@@ -124,13 +127,14 @@ internal sealed class TrainerWindow
             scroll = GUILayout.BeginScrollView(scroll);
             try
             {
-                if (selectedTab == 6) diagnostics.Draw();
+                if (selectedTab == 7) diagnostics.Draw();
                 else if (selectedTab == 0) playerTab.Draw();
                 else if (selectedTab == 1) itemsTab.Draw();
                 else if (selectedTab == 2) craftingTab.Draw();
                 else if (selectedTab == 3) worldTab.Draw();
-                else if (selectedTab == 4) tribeTab.Draw();
-                else if (selectedTab == 5) advanced.Draw();
+                else if (selectedTab == 4) foragingTab.Draw();
+                else if (selectedTab == 5) tribeTab.Draw();
+                else if (selectedTab == 6) advanced.Draw();
                 else GUILayout.Label("This module is planned for a later stage.");
             }
             finally { GUILayout.EndScrollView(); }

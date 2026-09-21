@@ -6,7 +6,7 @@ using UnityEngine;
 namespace HutchASKA.Plugin.UI.Tabs;
 
 internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard, VillagerEditorService editor,
-    TribeRestoreFeature heal, TribeRestoreFeature restore)
+    TribeRestoreFeature heal, TribeRestoreFeature restore, RecruitRerollPanel reroll)
 {
     private IReadOnlyList<VillagerSnapshot> villagers = Array.Empty<VillagerSnapshot>();
     private IReadOnlyList<VillagerSnapshot> matches = Array.Empty<VillagerSnapshot>();
@@ -15,13 +15,14 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
     private string query = "";
     private string? message;
     private int page;
-    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; }
+    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; reroll.Clear(); }
 
     public void Draw()
     {
         foreach (var id in new[] { "tribe.god", "tribe.food", "tribe.water", "tribe.temperature", "tribe.energy", "tribe.rest", "tribe.happiness", "tribe.aging" })
             controls.Toggle(id);
         controls.Toggle("tribe.recruitment");
+        reroll.Draw();
         var previous = GUI.enabled;
         GUI.enabled = previous && controls.CanChange(controls.Get("tribe.heal"));
         if (GUILayout.Button("Heal Entire Tribe"))

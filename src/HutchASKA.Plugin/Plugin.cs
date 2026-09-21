@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.6";
+    public const string PluginVersion = "0.1.7";
 
     public override void Load()
     {
@@ -42,6 +42,10 @@ public sealed class Plugin : BasePlugin
         movement.Hosted = host.Register(movement);
         var harvesting = new HarvestSpeedFeature(Players);
         harvesting.Hosted = host.Register(harvesting);
+        var fishing = new FishingAssistFeature(Players);
+        fishing.Hosted = host.Register(fishing);
+        var mushrooms = new MushroomRegrowthFeature();
+        mushrooms.Hosted = host.Register(mushrooms);
         var buildSpeed = new BuildSpeedFeature(Players);
         buildSpeed.Hosted = host.Register(buildSpeed);
         var terrain = new TerrainLevelingFeature();
@@ -84,13 +88,15 @@ public sealed class Plugin : BasePlugin
         host.Register(new FreezeAgingFeature());
         var recruitment = new InstantRecruitmentFeature(World);
         recruitment.Hosted = host.Register(recruitment);
+        var reroll = new RecruitRerollFeature(guard);
+        reroll.Hosted = host.Register(reroll);
         var healTribe = new TribeRestoreFeature(tribe, true);
         healTribe.Hosted = host.Register(healTribe);
         var restoreTribe = new TribeRestoreFeature(tribe, false);
         restoreTribe.Hosted = host.Register(restoreTribe);
         var editor = new VillagerEditorService(tribe);
         editor.Hosted = host.Register(editor);
-        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain);
+        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain, fishing, mushrooms);
         var hotkeys = new HotkeyManager(Config, host, guard, config);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
@@ -98,7 +104,7 @@ public sealed class Plugin : BasePlugin
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion,
             SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
         var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, catalog, give, editor, healTribe, restoreTribe, diagnostics,
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, fishing, mushrooms, catalog, give, editor, healTribe, restoreTribe, reroll, diagnostics,
             error => Log.LogError($"Trainer rendering failed; the menu is disabled until restart. Cursor and menu input will be released. {error}"));
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);
