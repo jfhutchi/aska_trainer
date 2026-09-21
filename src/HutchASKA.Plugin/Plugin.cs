@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.8";
+    public const string PluginVersion = "0.1.9";
 
     public override void Load()
     {
@@ -55,6 +55,8 @@ public sealed class Plugin : BasePlugin
         fuel.Hosted = host.Register(fuel);
         var timeStep = new TimeStepFeature(World);
         timeStep.Hosted = host.Register(timeStep);
+        var weather = new WeatherOverrideFeature(World);
+        weather.Hosted = host.Register(weather);
         var gameSpeed = new GameSpeedFeature();
         host.Register(gameSpeed);
         var menuInput = host.Register(new MenuInputFeature());
@@ -116,7 +118,7 @@ public sealed class Plugin : BasePlugin
             SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
         var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
         var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, fishing, mushrooms, catalog, give, editor, healTribe, restoreTribe, reroll,
-            playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, diagnostics,
+            playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, weather, diagnostics,
             error => Log.LogError($"Trainer rendering failed; the menu is disabled until restart. Cursor and menu input will be released. {error}"));
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
         AddComponent<TrainerBehaviour>().Initialize(host, window, hotkeys, config, guard, menuInput);

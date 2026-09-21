@@ -24,7 +24,7 @@ internal sealed class FishingAssistFeature(IPlayerContext players) : NativeFeatu
     private int casts, bites, weightedBites, pulls, reports;
     private (float Bite, float Rare, bool Easy, int Casts, int Bites, int Weights, int Pulls)? published;
     public MultiplierSetting BiteSpeed { get; } = new(1, 4);
-    public MultiplierSetting RareWeight { get; } = new(1, 4);
+    public MultiplierSetting RareWeight { get; } = new(1, 50);
     public bool EasyCatch { get; set; }
 
     private sealed class CastState(FishingRoutine routine, FishingMeleeObject rod, int playerIdentity)

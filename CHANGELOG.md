@@ -4,14 +4,16 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
-### Prepared for the next development candidate
+### Changed in 0.1.9 development candidate
 
+- Added session-only World weather choices: Normal Forecast, Clear Skies, Rain, Fog, Overcast and Blizzard. Uses loaded ordinary weather assets, pauses for special weather, and restores native forecasting without regenerating forecast dates or changing the clock. Ordinary wetness, snow and gameplay consequences remain native.
+- Changed eligible Rare Fish Boost presets to normal, 20x, 30x, 40x and 50x. Old 2x/4x rare values reset to normal. Bite-speed presets remain normal/2x/4x, and native bait/biome/season eligibility remains active.
 - Added independent player and tribe skill-experience presets: normal, 2x, 3x, 4x and 5x, applying only to positive earned awards through the native proficiency path. Normal level-up and cap handling remains active.
 - Added tribe-wide construction and gathering/tool-harvesting presets, normal through 5x, restricted to current owned members and their normal work actions.
 - Added separate tribe ground Movement Speed presets, normal through 5x, retaining native acceleration/pathfinding and excluding swimming, vehicles, ladders and special traversal.
 - Moved player Harvesting Speed to Fishing & Foraging and expanded the menu to the game-window height with 20-pixel top/bottom margins.
 - Preserved original names on private building configuration copies to prevent untranslated `(Clone)` interaction prompts.
-- These changes are prepared source changes pending the user's end-of-session update; live acceptance is outstanding. The requested higher rare-fish presets are tracked separately for that update.
+- New controls require live acceptance; source/native checks and a successful build do not establish gameplay results. Mushroom acceleration and previously withdrawn item/terrain hooks remain unavailable.
 
 ### Changed in 0.1.8 development candidate
 

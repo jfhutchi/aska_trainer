@@ -36,14 +36,14 @@ internal sealed class TrainerWindow
         FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms, AskaItemCatalog catalog, GiveItemFeature give,
         VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe, RecruitRerollFeature reroll,
         SkillGainFeature playerSkills, SkillGainFeature tribeSkills, TribeBuildSpeedFeature tribeBuilding, TribeHarvestSpeedFeature tribeHarvesting,
-        TribeMovementSpeedFeature tribeMovement,
+        TribeMovementSpeedFeature tribeMovement, WeatherOverrideFeature weather,
         DiagnosticsService diagnosticsService, Action<Exception> reportRenderError)
     {
         this.guard = guard;
         renderGuard = new CallbackGuard(reportRenderError);
         var controls = new FeatureControls(host, guard, config);
         playerTab = new PlayerTab(controls, movement, playerSkills, config);
-        worldTab = new WorldTab(controls, speed, timeStep, config);
+        worldTab = new WorldTab(controls, speed, timeStep, weather, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls, building, terrain, config);
         tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe, new RecruitRerollPanel(reroll, controls),

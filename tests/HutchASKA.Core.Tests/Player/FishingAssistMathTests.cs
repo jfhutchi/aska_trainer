@@ -6,8 +6,10 @@ public sealed class FishingAssistMathTests
 {
     [Theory]
     [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(4)]
+    [InlineData(20)]
+    [InlineData(30)]
+    [InlineData(40)]
+    [InlineData(50)]
     public void SpecialWeightScalesTheEntireNativeFormula(float multiplier)
     {
         var native = FishingAssistMath.EffectiveWeight(3, 2, .5f);
@@ -23,17 +25,18 @@ public sealed class FishingAssistMathTests
     {
         const float common = 90;
         var special = FishingAssistMath.EffectiveWeight(4, 1, 0);
-        var boosted = FishingAssistMath.EffectiveWeight(16, 4, 0);
-        Assert.Equal(4, (boosted / common) / (special / common));
-        Assert.InRange(boosted / (common + boosted), .18f, .19f);
+        var boosted = FishingAssistMath.EffectiveWeight(
+            FishingAssistMath.ScaleWeight(4, true, 50), FishingAssistMath.ScaleWeight(1, true, 50), 0);
+        Assert.Equal(50, (boosted / common) / (special / common), 4);
+        Assert.InRange(boosted / (common + boosted), .73f, .74f);
         Assert.Equal(1, common / (common + boosted) + boosted / (common + boosted));
     }
 
     [Fact]
     public void ZeroWeightStaysZeroAndBaitOnlyWeightRemainsValid()
     {
-        Assert.Equal(0, FishingAssistMath.ScaleWeight(0, true, 4));
-        Assert.Equal(8, FishingAssistMath.EffectiveWeight(0, FishingAssistMath.ScaleWeight(2, true, 4), 5));
+        Assert.Equal(0, FishingAssistMath.ScaleWeight(0, true, 50));
+        Assert.Equal(100, FishingAssistMath.EffectiveWeight(0, FishingAssistMath.ScaleWeight(2, true, 50), 5));
     }
 
     [Theory]
@@ -41,15 +44,49 @@ public sealed class FishingAssistMathTests
     [InlineData(float.NaN)]
     [InlineData(float.PositiveInfinity)]
     public void InvalidWeightsFailBeforeNativeConfigurationChanges(float value) =>
-        Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.ScaleWeight(value, true, 4));
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.ScaleWeight(value, true, 50));
 
     [Fact]
     public void OverflowAndInvalidMultipliersAreRejected()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.ScaleWeight(float.MaxValue, true, 4));
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.ScaleWeight(float.MaxValue, true, 50));
         Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.ScaleWeight(1, true, 0));
         Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.RescaleTimer(1, 0, 1));
     }
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(20, 20)]
+    [InlineData(30, 30)]
+    [InlineData(40, 40)]
+    [InlineData(50, 50)]
+    [InlineData(2, 1)]
+    [InlineData(4, 1)]
+    [InlineData(0, 1)]
+    [InlineData(-1, 1)]
+    [InlineData(5, 1)]
+    [InlineData(21, 1)]
+    [InlineData(51, 1)]
+    [InlineData(int.MaxValue, 1)]
+    public void OnlyExplicitRarePresetsSurviveConfigurationReload(int configured, int expected) =>
+        Assert.Equal(expected, FishingAssistMath.NormalizeRareWeightPreset(configured));
+
+    [Theory]
+    [InlineData(2)]
+    [InlineData(4)]
+    [InlineData(21)]
+    [InlineData(float.NaN)]
+    [InlineData(float.PositiveInfinity)]
+    public void UnsupportedRareMultipliersAreRejected(float multiplier) =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.ScaleWeight(1, true, multiplier));
+
+    [Theory]
+    [InlineData(20)]
+    [InlineData(30)]
+    [InlineData(40)]
+    [InlineData(50)]
+    public void RareWeightPresetsCannotChangeTheBiteSpeedContract(float multiplier) =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => FishingAssistMath.WaitTarget(20, multiplier));
 
     [Fact]
     public void WaitSpeedChangesPreserveProgressAndDisableRestoresNativeTiming()

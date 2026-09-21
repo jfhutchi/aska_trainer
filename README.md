@@ -6,13 +6,20 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Pending local update: Player Skill Gain and Tribe Skill Gain have separate
+Version 0.1.9 adds World-tab weather choices: Normal Forecast, Clear Skies,
+Rain, Fog, Overcast and Blizzard, using ordinary weather assets loaded by the
+current world. The selection is session-only, pauses for special-event weather,
+and does not reroll the forecast or move the clock. Normal/reset resumes native
+weather; resulting wetness, snow and normal gameplay effects can persist and
+clear naturally. Missing weather assets are reported as unavailable.
+
+Player Skill Gain and Tribe Skill Gain have separate
 normal/2x/3x/4x/5x presets. The Tribe tab also offers independent Build Speed and
 Harvest Speed presets for current owned tribe members, plus ground Movement
 Speed presets through 5x. Player Harvesting Speed
 is in Fishing & Foraging, and the menu uses the game-window height with small
 top/bottom margins. These changes require in-game acceptance after installation;
-the installed 0.1.8 session does not receive source edits while running.
+see the [0.1.9 retest](docs/testing/0.1.9-weather-and-tribe-retest.md).
 
 Skill gain multiplies positive experience earned through ASKA's normal award
 routine, including work, fishing and combat. It leaves native level-up and cap
@@ -27,9 +34,12 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.8` is a development candidate requiring gameplay acceptance.**
-Fishing & Foraging now offers bite-speed and eligible rare-fish-weight presets
-(1x/2x/4x) and Easy Catch. Mushroom regrowth is unavailable in 0.1.8. Tribe offers a traits-only recruit
+**Version `0.1.9` is a development candidate requiring gameplay acceptance.**
+Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
+presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
+not guaranteed catch percentages; bait and native eligibility still apply.
+Old 2x/4x rare settings reset to normal when upgrading. Mushroom regrowth remains
+unavailable. Tribe offers a traits-only recruit
 preview and Apply action. These features preserve ordinary gameplay actions;
 the trainer does not set achievements or their progress counters. See the
 [0.1.7 retest](docs/testing/0.1.7-gameplay-assists-retest.md).

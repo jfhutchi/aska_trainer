@@ -1,9 +1,8 @@
 # Pending tribe work and skill gain acceptance
 
 Target: ASKA Steam build 25326768 with the current local BepInEx installation.
-These are manual acceptance steps, not completed gameplay results. Keep the
-current 0.1.8 game session running until the user finishes their existing test;
-source edits do not update a loaded plugin.
+These are manual acceptance steps, not completed gameplay results. These controls
+are included in the 0.1.9 candidate. Restart ASKA after installation before testing.
 
 ## Verification completed before installation
 
@@ -71,5 +70,5 @@ World controls retain their world scope. See the parity audit for player-only
 transactions and withdrawn features that cannot be represented by a working
 tribe checkbox without further native verification.
 
-The rare-fish 20x/30x/40x/50x presets are separately requested for the installation
-window after the user closes ASKA; they are not part of this source change yet.
+The rare-fish 20x/30x/40x/50x presets and weather controls are included in 0.1.9;
+see 0.1.9-weather-and-tribe-retest.md for their separate checks.

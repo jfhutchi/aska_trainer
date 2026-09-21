@@ -1,5 +1,6 @@
 using BepInEx.Configuration;
 using HutchASKA.Core.Features;
+using HutchASKA.Core.Player;
 using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
@@ -67,7 +68,7 @@ internal sealed class RuntimeConfiguration
         BuildSpeed = config.Bind("Crafting", "BuildSpeedMultiplier", 1, "Construction work per player hammer stroke: 1 (normal), 2, 3 or 4. Material requirements are separate.");
         TerrainSize = config.Bind("Crafting", "TerrainLevelingSize", 5, "Maximum terrain leveling plan side in grid tiles: 5 to 20. Applies to new leveling plans.");
         FishingBiteSpeed = config.Bind("Fishing", "BiteSpeed", 1, "Bite wait speed: 1 (normal), 2 or 4.");
-        FishingRareWeight = config.Bind("Fishing", "RareFishWeight", 1, "Eligible rare-fish selection weight: 1 (normal), 2 or 4. Not a guaranteed catch percentage.");
+        FishingRareWeight = config.Bind("Fishing", "RareFishWeight", 1, "Eligible rare-fish selection weight: 1 (normal), 20, 30, 40 or 50. Other values, including legacy 2 and 4, reset to normal. Not a guaranteed catch percentage.");
         FishingEasyCatch = config.Bind("Fishing", "EasyCatch", false, "Longer reaction time and improved valid catches while Fishing Assists is enabled.");
         MushroomRegrowth = config.Bind("Foraging", "MushroomRegrowth", 1, "Unavailable pending autosave-safe timers. Forced to 1 (normal).");
         PlayerSkillGain = config.Bind("Player", "SkillGainMultiplier", 1, "Player earned skill experience: 1 (normal) to 5. Native caps remain.");
@@ -84,7 +85,8 @@ internal sealed class RuntimeConfiguration
         building.Multiplier.Value = Math.Clamp(BuildSpeed.Value, 1, 4);
         terrain.Size.Value = Math.Clamp(TerrainSize.Value, 5, 20);
         LoadAssistSettings();
-        foreach (var feature in host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal)))
+        // Weather selections are session-only, even when other cheats are restored on launch.
+        foreach (var feature in host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal) && f.Id != "world.weather"))
             enabled[feature.Id] = config.Bind("Enabled", feature.Id, false, "Used only when RestoreEnabledStatesOnLaunch is enabled.");
     }
     public void TryRestore(SinglePlayerGuard guard)
@@ -152,7 +154,8 @@ internal sealed class RuntimeConfiguration
     private void LoadAssistSettings()
     {
         fishing.BiteSpeed.Value = AssistPreset(FishingBiteSpeed.Value);
-        fishing.RareWeight.Value = AssistPreset(FishingRareWeight.Value);
+        FishingRareWeight.Value = FishingAssistMath.NormalizeRareWeightPreset(FishingRareWeight.Value);
+        fishing.RareWeight.Value = FishingRareWeight.Value;
         fishing.EasyCatch = FishingEasyCatch.Value;
         mushrooms.Multiplier.Reset();
         MushroomRegrowth.Value = 1;

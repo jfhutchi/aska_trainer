@@ -4,12 +4,14 @@ using UnityEngine;
 
 namespace HutchASKA.Plugin.UI.Tabs;
 
-internal sealed class WorldTab(FeatureControls controls, GameSpeedFeature speed, TimeStepFeature timeStep, RuntimeConfiguration config)
+internal sealed class WorldTab(FeatureControls controls, GameSpeedFeature speed, TimeStepFeature timeStep, WeatherOverrideFeature weather, RuntimeConfiguration config)
 {
     private string? timeMessage;
-    public void Clear() => timeMessage = null;
+    private string? weatherMessage;
+    public void Clear() { timeMessage = null; weatherMessage = null; }
     internal void Draw()
     {
+        DrawWeather();
         controls.Toggle("world.freeze");
         controls.Toggle("world.fuel");
         var previous = GUI.enabled;
@@ -38,5 +40,35 @@ internal sealed class WorldTab(FeatureControls controls, GameSpeedFeature speed,
         GUILayout.EndHorizontal();
         GUI.enabled = previous;
         if (feature.StatusReason is { } reason) GUILayout.Label(reason);
+    }
+
+    private void DrawWeather()
+    {
+        var feature = controls.Get("world.weather");
+        GUILayout.Label($"Weather: {WeatherOverrideFeature.Label(weather.Choice)} [{feature.State}]");
+        var previous = GUI.enabled;
+        GUI.enabled = previous && controls.CanChange(feature);
+        try
+        {
+            for (var row = 0; row < 2; row++)
+            {
+                GUILayout.BeginHorizontal();
+                try
+                {
+                    for (var column = 0; column < 3; column++)
+                    {
+                        var choice = (WeatherChoice)(row * 3 + column);
+                        if (GUILayout.Button(WeatherOverrideFeature.Label(choice)))
+                            weatherMessage = weather.TrySelect(choice, out var error)
+                                ? $"{WeatherOverrideFeature.Label(choice)} selected." : error;
+                    }
+                }
+                finally { GUILayout.EndHorizontal(); }
+            }
+        }
+        finally { GUI.enabled = previous; }
+        if (weatherMessage is not null) GUILayout.Label(weatherMessage);
+        if (feature.StatusReason is { } reason) GUILayout.Label(reason);
+        GUILayout.Label("Session only. Rain and snow have normal world effects. Normal Forecast restores automatic weather; ground wetness and snow clear naturally.");
     }
 }

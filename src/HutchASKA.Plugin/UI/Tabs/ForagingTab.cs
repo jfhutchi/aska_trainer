@@ -9,7 +9,8 @@ namespace HutchASKA.Plugin.UI.Tabs;
 internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature fishing,
     MushroomRegrowthFeature mushrooms, HarvestSpeedFeature harvesting, RuntimeConfiguration config)
 {
-    private static readonly int[] Presets = { 1, 2, 4 };
+    private static readonly int[] BitePresets = { 1, 2, 4 };
+    private static readonly int[] RarePresets = { 1, 20, 30, 40, 50 };
 
     public void Draw()
     {
@@ -19,8 +20,8 @@ internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature
         GUI.enabled = previous && controls.CanChange(fishFeature);
         try
         {
-            var changed = Preset("Bite Speed", fishing.BiteSpeed, value => config.FishingBiteSpeed.Value = value);
-            changed |= Preset("Rare Fish Boost", fishing.RareWeight, value => config.FishingRareWeight.Value = value);
+            var changed = Preset("Bite Speed", fishing.BiteSpeed, BitePresets, value => config.FishingBiteSpeed.Value = value);
+            changed |= Preset("Rare Fish Boost", fishing.RareWeight, RarePresets, value => config.FishingRareWeight.Value = value);
             var easyCatch = GUILayout.Toggle(fishing.EasyCatch, "Easy Catch");
             if (easyCatch != fishing.EasyCatch)
             {
@@ -62,14 +63,14 @@ internal sealed class ForagingTab(FeatureControls controls, FishingAssistFeature
         if (mushroomFeature.StatusReason is { } mushroomReason) GUILayout.Label(mushroomReason);
     }
 
-    private static bool Preset(string label, MultiplierSetting setting, Action<int> remember)
+    private static bool Preset(string label, MultiplierSetting setting, int[] presets, Action<int> remember)
     {
         var changed = false;
         GUILayout.Label($"{label}: {setting.Value:0}x");
         GUILayout.BeginHorizontal();
         try
         {
-            foreach (var value in Presets)
+            foreach (var value in presets)
             {
                 if (!GUILayout.Button(value == 1 ? "1x / Normal" : $"{value}x")) continue;
                 setting.Value = value;

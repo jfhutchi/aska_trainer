@@ -3,9 +3,12 @@ namespace HutchASKA.Core.Player;
 /// <summary>The additive weight and timer contracts used by ASKA's fishing coroutine.</summary>
 public static class FishingAssistMath
 {
+    public static int NormalizeRareWeightPreset(int value) => value is 20 or 30 or 40 or 50 ? value : 1;
+
     public static float ScaleWeight(float native, bool special, float multiplier)
     {
-        ValidateMultiplier(multiplier);
+        if (multiplier is not (1 or 20 or 30 or 40 or 50))
+            throw new ArgumentOutOfRangeException(nameof(multiplier));
         ValidateNonnegative(native);
         return Checked(special ? native * multiplier : native);
     }
