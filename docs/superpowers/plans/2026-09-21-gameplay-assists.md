@@ -34,8 +34,17 @@
 - [x] Root edits Plugin.cs, RuntimeConfiguration.cs, TrainerWindow.cs and appropriate tabs to register/wire completed features. Defaults remain normal/off; Reset All/config reload/rescan follow existing behavior. Manual rerolls are not replayed by restored toggle configuration.
 - [x] Run dotnet test tests/HutchASKA.Core.Tests/HutchASKA.Core.Tests.csproj -c Release and scripts/Build-Local.ps1 against the installed ASKA directory. Expected: no test failures, build warnings/errors or interop-gate failures.
 - [x] Review combined changes independently, fix actionable defects, and update README, CHANGELOG and acceptance evidence with actual supported behavior and outstanding gameplay checks.
-- [ ] Commit coherent source, package using scripts/Package-Release.ps1, and inspect the strict release file list. Install only while ASKA is closed and verify installed versions/hashes. No game launch, save edits or achievement unlocks are automated.
-- [ ] Provide short first-test instructions for casts/catches, eligible mushroom regrowth and recruit preview; retain the outstanding 0.1.6 construction test separately.
+- [x] Commit coherent source, package using scripts/Package-Release.ps1, and inspect the strict release file list. Install only while ASKA is closed and verify installed versions/hashes. No game launch, save edits or achievement unlocks are automated.
+- [x] Provide short first-test instructions for casts/catches, eligible mushroom regrowth and recruit preview; retain the outstanding 0.1.6 construction test separately. See docs/testing/0.1.7-gameplay-assists-retest.md.
+
+## Delivery
+
+On 2026-09-21, packaged source commit 92a7d44c9ecdba92dc7006955d25840d687cd192
+with no uncommitted source changes. The nine-entry 0.1.7 archive passed release
+checks. Installed both authored DLLs, README.txt and BUILDINFO.txt while ASKA was
+closed; all four installed file hashes match their archive entries, and both DLLs
+report 0.1.7.0. Gameplay acceptance remains outstanding and is tracked separately
+in the retest document; no game launch or save/achievement edits were performed.
 
 ## Approval
 
