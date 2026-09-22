@@ -41,7 +41,7 @@ internal sealed class TrainerWindow
     {
         this.guard = guard;
         renderGuard = new CallbackGuard(reportRenderError);
-        var controls = new FeatureControls(host, guard, config);
+        var controls = new FeatureControls(host, guard);
         playerTab = new PlayerTab(controls, movement, playerSkills, config);
         worldTab = new WorldTab(controls, speed, timeStep, weather, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);

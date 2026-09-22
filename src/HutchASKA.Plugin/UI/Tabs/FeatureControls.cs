@@ -1,11 +1,10 @@
 using HutchASKA.Core.Features;
 using UnityEngine;
-using HutchASKA.Plugin.Configuration;
 using HutchASKA.Plugin.Infrastructure;
 
 namespace HutchASKA.Plugin.UI.Tabs;
 
-internal sealed class FeatureControls(FeatureHost host, SinglePlayerGuard guard, RuntimeConfiguration config)
+internal sealed class FeatureControls(FeatureHost host, SinglePlayerGuard guard)
 {
     internal ITrainerFeature Get(string id) => host.Registry.Find(id) ?? throw new InvalidOperationException($"Feature {id} is not registered.");
     internal bool CanChange(ITrainerFeature feature) => guard.Decision.Allowed && feature.State is not (FeatureState.Faulted or FeatureState.Incompatible);
@@ -23,7 +22,6 @@ internal sealed class FeatureControls(FeatureHost host, SinglePlayerGuard guard,
     internal void Set(ITrainerFeature feature, bool enabled)
     {
         if (enabled) feature.TryEnable(); else feature.Disable();
-        config.Remember(feature);
     }
 
     internal void MultiplierPresets(string id, MultiplierSetting setting, int maximum, Action<int> remember)

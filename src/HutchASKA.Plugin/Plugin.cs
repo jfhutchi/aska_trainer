@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.13";
+    public const string PluginVersion = "0.1.14";
 
     public override void Load()
     {
@@ -110,7 +110,7 @@ public sealed class Plugin : BasePlugin
         editor.Hosted = host.Register(editor);
         var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain, fishing, mushrooms,
             playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement);
-        var hotkeys = new HotkeyManager(Config, host, guard, config);
+        var hotkeys = new HotkeyManager(Config, host, guard);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
         var bepinexVersion = bepinexAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? bepinexAssembly.GetName().Version?.ToString() ?? "Unavailable";

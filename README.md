@@ -6,6 +6,12 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Version 0.1.14 starts trainer options off each time a world loads, including
+when returning through the main menu without quitting ASKA. The former
+restore-on-launch option is retired and saved enabled flags are cleared.
+Multiplier presets remain saved but inactive until the corresponding option is
+enabled. This change awaits an in-game world-transition retest.
+
 Version 0.1.13 keeps Free Building from waiving farm-plot supplies after a
 confirmed farm activation crash. Farm plots require normal materials even when
 Free Building is on; other eligible structures still receive the supply waiver.
@@ -51,7 +57,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.13` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.14` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.
@@ -66,8 +72,7 @@ for stalled building progress remains in place and still needs a fresh gameplay
 retest; see [building evidence](docs/testing/0.1.6-building-retest.md).
 Infinite Durability and No Spoilage remain unavailable after item-processing
 errors. Freeze Aging and expanded leveling also remain unavailable. Normal game
-wear, spoilage and leveling apply. All cheats start off on first installation;
-automatic restoration of enabled states defaults to off.
+wear, spoilage and leveling apply. Trainer options start off on every world load.
 
 The user reported approximately 115 FPS and supplied readable screenshots for 0.1.2 after the earlier readability/performance repair. That observation does not validate the new controls or their FPS impact. See the [0.1.3 retest](docs/testing/movement-harvest-close-retest.md), [release checklist](docs/testing/v1-release-checklist.md), [earlier repair evidence](docs/testing/readability-performance-repair.md) and [implementation ledger](docs/testing/implementation-status.md).
 

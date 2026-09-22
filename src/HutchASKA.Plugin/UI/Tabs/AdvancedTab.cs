@@ -10,7 +10,7 @@ internal sealed class AdvancedTab(RuntimeConfiguration config, DiagnosticsServic
     public void Clear() => message = null;
     public void Draw()
     {
-        config.RestoreStates.Value = GUILayout.Toggle(config.RestoreStates.Value, "Restore enabled states on next launch (opt in)");
+        GUILayout.Label("Trainer options start off whenever a world loads. Saved presets remain inactive until enabled.");
         GUILayout.Label("Configuration: BepInEx/config/com.jfhutchi.hutchaska.cfg");
         if (GUILayout.Button("Reload Configuration")) message = diagnostics.ReloadConfiguration();
         if (GUILayout.Button("Re-scan Compatibility")) message = diagnostics.RescanCompatibility();

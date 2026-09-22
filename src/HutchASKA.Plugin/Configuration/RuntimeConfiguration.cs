@@ -24,11 +24,9 @@ internal sealed class RuntimeConfiguration
     private readonly TribeBuildSpeedFeature tribeBuilding;
     private readonly TribeHarvestSpeedFeature tribeHarvesting;
     private readonly TribeMovementSpeedFeature tribeMovement;
-    private readonly Dictionary<string, ConfigEntry<bool>> enabled = new();
+    private readonly List<ConfigEntry<bool>> legacyEnabled = new();
     private readonly SinglePlayerTransitionTracker sessionTransitions = new();
-    private string[] rearmAfterTransition = Array.Empty<string>();
-    private bool restored;
-    public ConfigEntry<bool> RestoreStates { get; }
+    private readonly ConfigEntry<bool> legacyRestoreStates;
     public ConfigEntry<float> Movement { get; }
     public ConfigEntry<float> GameSpeed { get; }
     public ConfigEntry<int> HarvestSpeed { get; }
@@ -65,7 +63,7 @@ internal sealed class RuntimeConfiguration
         this.tribeBuilding = tribeBuilding;
         this.tribeHarvesting = tribeHarvesting;
         this.tribeMovement = tribeMovement;
-        RestoreStates = config.Bind("General", "RestoreEnabledStatesOnLaunch", false, "Opt in to restoring previously selected cheats after single-player confirmation.");
+        legacyRestoreStates = config.Bind("General", "RestoreEnabledStatesOnLaunch", false, "Retired: trainer options always start off when a world loads.");
         Movement = config.Bind("Player", "MovementMultiplier", 1f, "Movement multiplier, 1 to 5.");
         GameSpeed = config.Bind("World", "GameSpeedMultiplier", 1f, "Game speed multiplier, 0.5 to 5.");
         HarvestSpeed = config.Bind("Player", "HarvestSpeedMultiplier", 1, "Player harvesting speed preset: 1 (normal), 2, 3 or 4. Does not change global game speed.");
@@ -90,38 +88,27 @@ internal sealed class RuntimeConfiguration
         building.Multiplier.Value = Math.Clamp(BuildSpeed.Value, 1, 4);
         terrain.Size.Value = Math.Clamp(TerrainSize.Value, 5, 20);
         LoadAssistSettings();
-        // Weather selections are session-only, even when other cheats are restored on launch.
+        // Keep old entries bound so a previous restore preference cannot turn features on.
         foreach (var feature in host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal) && f.Id != "world.weather"))
-            enabled[feature.Id] = config.Bind("Enabled", feature.Id, false, "Used only when RestoreEnabledStatesOnLaunch is enabled.");
+            legacyEnabled.Add(config.Bind("Enabled", feature.Id, false, "Retired: trainer options always start off when a world loads."));
+        ClearLegacyRestoreSettings();
     }
     public SinglePlayerTransition UpdateSession(SinglePlayerGuard guard)
     {
         var transition = sessionTransitions.Observe(guard.Refresh().Allowed);
-        if (transition == SinglePlayerTransition.LeftConfirmed)
+        if (transition is SinglePlayerTransition.LeftConfirmed or SinglePlayerTransition.ReturnedConfirmed)
         {
-            rearmAfterTransition = host.Registry.Snapshot()
-                .Where(feature => feature.State == FeatureState.Enabled
-                    && !feature.Id.StartsWith("ui.", StringComparison.Ordinal)
-                    && feature.Id != "world.weather")
-                .Select(feature => feature.Id)
-                .ToArray();
-        }
-        else if (transition == SinglePlayerTransition.ReturnedConfirmed)
-        {
-            foreach (var id in rearmAfterTransition) host.Registry.Find(id)?.TryEnable();
-            rearmAfterTransition = Array.Empty<string>();
-        }
-        else if (transition == SinglePlayerTransition.FirstConfirmed && !restored)
-        {
-            restored = true;
-            if (RestoreStates.Value)
-                foreach (var pair in enabled) if (pair.Value.Value) host.Registry.Find(pair.Key)?.TryEnable();
+            host.DisableAll();
+            TransientStateCleared?.Invoke();
+            host.Trace("World transition: trainer options are off.");
         }
         return transition;
     }
-    public void Remember(ITrainerFeature feature)
+
+    private void ClearLegacyRestoreSettings()
     {
-        if (enabled.TryGetValue(feature.Id, out var entry)) entry.Value = feature.State == FeatureState.Enabled;
+        legacyRestoreStates.Value = false;
+        foreach (var entry in legacyEnabled) entry.Value = false;
     }
     public void ResetAll()
     {
@@ -130,7 +117,6 @@ internal sealed class RuntimeConfiguration
         FeatureReset.ResetAll(gameplay, movement.Multiplier, speed.Multiplier, harvesting.Multiplier, building.Multiplier,
             fishing.BiteSpeed, fishing.RareWeight, mushrooms.Multiplier, playerSkills.Multiplier,
             tribeSkills.Multiplier, tribeBuilding.Multiplier, tribeHarvesting.Multiplier, tribeMovement.Multiplier);
-        foreach (var feature in gameplay) Remember(feature);
         Movement.Value = 1;
         GameSpeed.Value = 1;
         HarvestSpeed.Value = 1;
@@ -146,7 +132,6 @@ internal sealed class RuntimeConfiguration
         MushroomRegrowth.Value = 1;
         PlayerSkillGain.Value = TribeSkillGain.Value = TribeBuildSpeed.Value = TribeHarvestSpeed.Value = 1;
         TribeMovementSpeed.Value = 1;
-        restored = true;
         TransientStateCleared?.Invoke();
         host.Trace("Reset All completed; inspect diagnostics for any remaining native cleanup failure.");
     }
@@ -156,9 +141,8 @@ internal sealed class RuntimeConfiguration
         host.DisableAll();
         TransientStateCleared?.Invoke();
         if (host.HasPendingCleanup) throw new InvalidOperationException("Configuration was not reloaded because native cleanup is still pending. Use Reset All and inspect Diagnostics.");
-        // Do not save remembered disabled flags before reloading: that would overwrite the user's file edits.
-        restored = true;
         config.Reload();
+        ClearLegacyRestoreSettings();
         movement.Multiplier.Value = Movement.Value;
         speed.Multiplier.Value = GameSpeed.Value;
         harvesting.Multiplier.Value = Math.Clamp(HarvestSpeed.Value, 1, 4);
@@ -171,7 +155,6 @@ internal sealed class RuntimeConfiguration
 
     public void Rescan()
     {
-        restored = true;
         host.RescanCompatibility();
         TransientStateCleared?.Invoke();
     }
