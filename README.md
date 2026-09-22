@@ -6,6 +6,11 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Version 0.1.15 moves Instant Normal Recruitment and recruit trait reroll into a
+separate Tribe Summon tab. The Tribe tab retains villager needs, skills, speeds,
+and the villager editor. The nine menu tabs now use three rows of three. This
+menu change still needs an in-game check.
+
 Version 0.1.14 starts trainer options off each time a world loads, including
 when returning through the main menu without quitting ASKA. The former
 restore-on-launch option is retired and saved enabled flags are cleared.
@@ -58,7 +63,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.14` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.15` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.

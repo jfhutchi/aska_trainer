@@ -20,12 +20,13 @@ internal sealed class TrainerWindow
     private readonly ItemsTab itemsTab;
     private readonly CraftingTab craftingTab;
     private readonly TribeTab tribeTab;
+    private readonly TribeSummonTab tribeSummonTab;
     private readonly ForagingTab foragingTab;
     private readonly GUI.WindowFunction drawContents;
     private readonly CallbackGuard renderGuard;
     private readonly TrainerTheme theme = new();
     private readonly string[] tabs =
-        { "Player", "Items", "Crafting & Building", "World", "Fishing & Foraging", "Tribe", "Advanced", "Diagnostics" };
+        { "Player", "Items", "Crafting & Building", "World", "Fishing & Foraging", "Tribe", "Tribe Summon", "Advanced", "Diagnostics" };
     private Rect bounds = new(20, 20, 960, 620);
     private Vector2 scroll;
     private int selectedTab;
@@ -46,8 +47,9 @@ internal sealed class TrainerWindow
         worldTab = new WorldTab(controls, speed, timeStep, weather, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
         craftingTab = new CraftingTab(controls, building, terrain, config);
-        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe, new RecruitRerollPanel(reroll, controls),
+        tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe,
             tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, config);
+        tribeSummonTab = new TribeSummonTab(controls, new RecruitRerollPanel(reroll, controls));
         foragingTab = new ForagingTab(controls, fishing, mushrooms, harvesting, config);
         diagnostics = new DiagnosticsTab(diagnosticsService);
         advanced = new AdvancedTab(config, diagnosticsService);
@@ -102,10 +104,10 @@ internal sealed class TrainerWindow
 
     public void UpdateContext()
     {
-        if (!guard.Decision.Allowed) { itemsTab.Clear(); tribeTab.Clear(); }
+        if (!guard.Decision.Allowed) { itemsTab.Clear(); tribeTab.Clear(); tribeSummonTab.Clear(); }
     }
 
-    private void ClearTransientState() { itemsTab.Clear(); tribeTab.Clear(); worldTab.Clear(); advanced.Clear(); }
+    private void ClearTransientState() { itemsTab.Clear(); tribeTab.Clear(); tribeSummonTab.Clear(); worldTab.Clear(); advanced.Clear(); }
 
     private void DrawContents(int id)
     {
@@ -132,14 +134,15 @@ internal sealed class TrainerWindow
             scroll = GUILayout.BeginScrollView(scroll);
             try
             {
-                if (selectedTab == 7) diagnostics.Draw();
+                if (selectedTab == 8) diagnostics.Draw();
                 else if (selectedTab == 0) playerTab.Draw();
                 else if (selectedTab == 1) itemsTab.Draw();
                 else if (selectedTab == 2) craftingTab.Draw();
                 else if (selectedTab == 3) worldTab.Draw();
                 else if (selectedTab == 4) foragingTab.Draw();
                 else if (selectedTab == 5) tribeTab.Draw();
-                else if (selectedTab == 6) advanced.Draw();
+                else if (selectedTab == 6) tribeSummonTab.Draw();
+                else if (selectedTab == 7) advanced.Draw();
                 else GUILayout.Label("This module is planned for a later stage.");
             }
             finally { GUILayout.EndScrollView(); }
@@ -152,13 +155,14 @@ internal sealed class TrainerWindow
     private void DrawTabs()
     {
         // Both GUIContent.Temp(string[]) and the final Toolbar overload are stripped in ASKA.
-        // Two rows leave room for readable labels at smaller window sizes.
-        for (var row = 0; row < 2; row++)
+        // Three balanced rows leave room for readable labels at smaller window sizes.
+        const int tabsPerRow = 3;
+        for (var row = 0; row * tabsPerRow < tabs.Length; row++)
         {
             GUILayout.BeginHorizontal();
             try
             {
-                for (var i = row * 4; i < Math.Min(row * 4 + 4, tabs.Length); i++)
+                for (var i = row * tabsPerRow; i < Math.Min((row + 1) * tabsPerRow, tabs.Length); i++)
                 {
                     var style = i == selectedTab ? theme.SelectedTab : theme.Skin.button;
                     if (GUILayout.Button(tabs[i], style) && i != selectedTab)

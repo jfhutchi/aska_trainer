@@ -8,7 +8,7 @@ using UnityEngine;
 namespace HutchASKA.Plugin.UI.Tabs;
 
 internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard, VillagerEditorService editor,
-    TribeRestoreFeature heal, TribeRestoreFeature restore, RecruitRerollPanel reroll,
+    TribeRestoreFeature heal, TribeRestoreFeature restore,
     SkillGainFeature skills, TribeBuildSpeedFeature building, TribeHarvestSpeedFeature harvesting,
     TribeMovementSpeedFeature movement, RuntimeConfiguration config)
 {
@@ -19,7 +19,7 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
     private string query = "";
     private string? message;
     private int page;
-    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; reroll.Clear(); }
+    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; }
 
     public void Draw()
     {
@@ -30,8 +30,6 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
         GUILayout.Label("Applies to current tribe members. Skill limits, material requirements and normal tasks still apply.");
         foreach (var id in new[] { "tribe.god", "tribe.food", "tribe.water", "tribe.temperature", "tribe.energy", "tribe.rest", "tribe.happiness", "tribe.aging" })
             controls.Toggle(id);
-        controls.Toggle("tribe.recruitment");
-        reroll.Draw();
         var previous = GUI.enabled;
         GUI.enabled = previous && controls.CanChange(controls.Get("tribe.heal"));
         if (GUILayout.Button("Heal Entire Tribe"))
