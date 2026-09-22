@@ -10,6 +10,10 @@ Version 0.1.12 keeps the readable opaque menu and active gameplay toggles workin
 when ASKA returns to its main menu and starts or loads another single-player world.
 The main-menu/new-world transition, Free Building rearm and menu controls were
 user-confirmed in the 0.1.12 native retest. Weather remains a per-world choice.
+The user also confirmed the basic effects of Tribe Skill Gain, Tribe Harvest
+Speed, Infinite Fuel, Free Repairs, Ignore Crafting Materials, Retain Items on
+Use, world-time/game-speed controls, player/tribe protection and needs, and Give
+Item/Give Stack in the installed 0.1.12 build.
 Version 0.1.11 adds Rare Fish Anywhere, which removes the local rare-fish-school
 requirement while retaining native bait, season and biome checks. Version 0.1.10
 corrects Tribe Movement Speed eligibility while retaining native

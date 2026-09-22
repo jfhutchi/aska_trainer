@@ -1,5 +1,16 @@
 # Ordered implementation ledger
 
+## 0.1.12 user acceptance
+
+The user confirmed the main-menu/new-world UI and feature-rearm repair, followed
+by the basic effects of Tribe Skill Gain, Tribe Harvest Speed, Infinite Fuel,
+Free Repairs, Ignore Crafting Materials, Retain Items on Use, Freeze Time,
+minus/plus one hour, Game Speed, player/tribe protection and needs, and Give
+Item/Give Stack. See [the transition retest](0.1.12-scene-transition-retest.md)
+and [additional feature acceptance](0.1.12-feature-acceptance.md). Historical
+pending-acceptance statements below describe the state when those versions were
+built and do not override these later runtime reports.
+
 ## 0.1.7 gameplay assists
 
 The approved fishing, mushroom-regrowth and recruit-trait work is implemented in
