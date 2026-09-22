@@ -10,7 +10,8 @@ Version 0.1.14 starts trainer options off each time a world loads, including
 when returning through the main menu without quitting ASKA. The former
 restore-on-launch option is retired and saved enabled flags are cleared.
 Multiplier presets remain saved but inactive until the corresponding option is
-enabled. This change awaits an in-game world-transition retest.
+enabled. Easy Catch and Rare Fish Anywhere also reset to off. This change
+awaits an in-game world-transition retest.
 
 Version 0.1.13 keeps Free Building from waiving farm-plot supplies after a
 confirmed farm activation crash. Farm plots require normal materials even when

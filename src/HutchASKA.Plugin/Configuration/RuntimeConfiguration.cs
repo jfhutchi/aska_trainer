@@ -88,6 +88,7 @@ internal sealed class RuntimeConfiguration
         building.Multiplier.Value = Math.Clamp(BuildSpeed.Value, 1, 4);
         terrain.Size.Value = Math.Clamp(TerrainSize.Value, 5, 20);
         LoadAssistSettings();
+        ClearPerWorldSwitches();
         // Keep old entries bound so a previous restore preference cannot turn features on.
         foreach (var feature in host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal) && f.Id != "world.weather"))
             legacyEnabled.Add(config.Bind("Enabled", feature.Id, false, "Retired: trainer options always start off when a world loads."));
@@ -99,6 +100,7 @@ internal sealed class RuntimeConfiguration
         if (transition is SinglePlayerTransition.LeftConfirmed or SinglePlayerTransition.ReturnedConfirmed)
         {
             host.DisableAll();
+            ClearPerWorldSwitches();
             TransientStateCleared?.Invoke();
             host.Trace("World transition: trainer options are off.");
         }
@@ -149,6 +151,7 @@ internal sealed class RuntimeConfiguration
         building.Multiplier.Value = Math.Clamp(BuildSpeed.Value, 1, 4);
         terrain.Size.Value = Math.Clamp(TerrainSize.Value, 5, 20);
         LoadAssistSettings();
+        ClearPerWorldSwitches();
         host.Verbosity = Verbosity.Value;
         host.Trace("Configuration reloaded. Gameplay features remain off.");
     }
@@ -173,6 +176,14 @@ internal sealed class RuntimeConfiguration
         tribeBuilding.Multiplier.Value = Math.Clamp(TribeBuildSpeed.Value, 1, 5);
         tribeHarvesting.Multiplier.Value = Math.Clamp(TribeHarvestSpeed.Value, 1, 5);
         tribeMovement.Multiplier.Value = Math.Clamp(TribeMovementSpeed.Value, 1, 5);
+    }
+
+    private void ClearPerWorldSwitches()
+    {
+        FishingRareAnywhere.Value = false;
+        fishing.RareAnywhere = false;
+        FishingEasyCatch.Value = false;
+        fishing.EasyCatch = false;
     }
 
     private static int AssistPreset(int value) => value >= 4 ? 4 : value >= 2 ? 2 : 1;
