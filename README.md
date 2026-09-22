@@ -9,7 +9,8 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 Version 0.1.13 keeps Free Building from waiving farm-plot supplies after a
 confirmed farm activation crash. Farm plots require normal materials even when
 Free Building is on; other eligible structures still receive the supply waiver.
-The change awaits an in-game farm retest. Version 0.1.12 kept the readable
+The user confirmed farm-plot construction works with Free Building enabled in
+the 0.1.13 in-game retest. Version 0.1.12 kept the readable
 opaque menu and active gameplay toggles working when ASKA returns to its main
 menu and starts or loads another single-player world.
 The main-menu/new-world transition, Free Building rearm and menu controls were
