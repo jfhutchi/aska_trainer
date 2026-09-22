@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.12";
+    public const string PluginVersion = "0.1.13";
 
     public override void Load()
     {

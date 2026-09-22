@@ -6,8 +6,12 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
-Version 0.1.12 keeps the readable opaque menu and active gameplay toggles working
-when ASKA returns to its main menu and starts or loads another single-player world.
+Version 0.1.13 keeps Free Building from waiving farm-plot supplies after a
+confirmed farm activation crash. Farm plots require normal materials even when
+Free Building is on; other eligible structures still receive the supply waiver.
+The change awaits an in-game farm retest. Version 0.1.12 kept the readable
+opaque menu and active gameplay toggles working when ASKA returns to its main
+menu and starts or loads another single-player world.
 The main-menu/new-world transition, Free Building rearm and menu controls were
 user-confirmed in the 0.1.12 native retest. Weather remains a per-world choice.
 The user also confirmed the basic effects of Tribe Skill Gain, Tribe Harvest
@@ -46,7 +50,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.12` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.13` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.
@@ -111,7 +115,7 @@ Ignore Crafting Materials waives the temporary recipe-material manifest in the n
 
 All enabled tribe needs share one update every half second. The batch resolves current registered, living, locally owned members once, rechecks live membership before writes, and retains no raw villagers across calls. Guests and ambiguous IDs are excluded. Max Needs leaves warmth and lifetime untouched. Remaining lifetime is never presented as chronological age: the inspected expiry modifier is golem-specific. Recruitment overrides one deadline read inside the owned pending outlet's native completion callback; it does not write the saved timer or call spawning directly. Native costs, villager creation and rearm remain in ASKA's normal path. The item and villager lists are sorted only when their snapshot or search changes.
 
-Free Building waives material checks for eligible current construction parts while keeping native work, layers and completion. Disabling rechecks actual supplies; completed work is retained. Free Repairs allows the normal repair-work phase without additional supplies. Any already deposited materials remain committed, and disabling does not revoke a repair phase already granted. Build Speed increases work per player hammer stroke, independently of material requirements.
+Free Building waives material checks for eligible current construction parts while keeping native work, layers and completion. Farm plots retain normal material requirements because bypassing their supply checks can activate the farm before its crop grid is initialized. Disabling rechecks actual supplies; completed work is retained. Free Repairs allows the normal repair-work phase without additional supplies. Any already deposited materials remain committed, and disabling does not revoke a repair phase already granted. Build Speed increases work per player hammer stroke, independently of material requirements.
 
 Expanded-leveling presets remain unavailable in 0.1.7: the implementation contains no terrain hooks and cannot activate from saved configuration or rescan. The normal leveling tool is unchanged. The user's 20-tile preview crashed while extending the second side; 10x10 was not attempted. See the [0.1.5 corrective retest](docs/testing/0.1.5-corrective-retest.md).
 

@@ -42,7 +42,7 @@ internal sealed class FreeBuildingFeature(SinglePlayerGuard guard) : NativeFeatu
         scanPending = true;
         waived = 0;
         reportedWaivers = -1;
-        StatusReason = "Waives missing construction materials; normal building work is still required.";
+        StatusReason = "Waives construction materials except for farm plots; normal building work is still required.";
         return base.TryEnable();
     }
 
@@ -59,7 +59,7 @@ internal sealed class FreeBuildingFeature(SinglePlayerGuard guard) : NativeFeatu
         if (waived != reportedWaivers)
         {
             reportedWaivers = waived;
-            StatusReason = $"Waives missing materials; normal building work required. Supply checks applied: {waived}.";
+            StatusReason = $"Waives materials except for farm plots; normal building work required. Supply checks applied: {waived}.";
         }
     }
 
@@ -71,8 +71,11 @@ internal sealed class FreeBuildingFeature(SinglePlayerGuard guard) : NativeFeatu
         if (!site || !site!.session || !site.session.isMaster || site.GetCurrentLayer() != part._layer) return false;
         var structure = site.Structure;
         var settlement = GameObjectResolver.FindUnique<Settlement>();
-        return structure && structure.IsValid && !structure.IsDead && !structure.Dismantled
-            && structure.Object.HasStateAuthority && settlement && structure.Settlement == settlement;
+        if (!structure || !structure.IsValid || structure.IsDead || structure.Dismantled
+            || !structure.Object.HasStateAuthority || !settlement || structure.Settlement != settlement) return false;
+        // A farm must initialize its crop grid before normal supply checks can activate it.
+        return !structure.GetComponentInChildren<FarmCropGrid>(true)
+            && !structure.GetComponentInChildren<FarmingOutlet>(true);
     }
 
     private static void BeginCheck(BuildPart __instance, out SupplyReadScope? __state)
