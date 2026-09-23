@@ -17,6 +17,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
     private int nativeFailures;
     private string? nativeFault;
     public string? LastError { get; private set; }
+    public string? LastDiscoverySummary { get; private set; }
     public bool HasNativeFailure { get; private set; }
     internal const string AgeUnavailable = "Age is unavailable: the native attribute measures remaining lifetime; safe age conversion/editing is unverified.";
     internal const string WarmthUnavailable = "Warmth is read-only: a safe native temperature range has not been verified.";
@@ -98,7 +99,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         try
         {
             var result = new List<VillagerSnapshot>();
-            foreach (var pair in ResolvePopulation())
+            foreach (var pair in ResolvePopulation(diagnose: true))
                 result.Add(ReadSnapshot(pair.Value, pair.Key));
             snapshots = result;
             error = LastError = null; HasNativeFailure = false;
@@ -168,16 +169,16 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
     private Villager Resolve(string id) => ResolvePopulation().TryGetValue(id, out var villager)
         ? villager : throw new TribeUnavailableException("Villager is no longer a live, owned member of the current tribe. Refresh the list.");
 
-    private Dictionary<string, Villager> ResolvePopulation()
+    private Dictionary<string, Villager> ResolvePopulation(bool diagnose = false)
     {
         RequireSession();
         if (nativeFault is not null) throw new InvalidOperationException(nativeFault);
-        try { return ReadPopulation(); }
+        try { return ReadPopulation(diagnose); }
         catch (TribeUnavailableException) { throw; }
         catch (Exception error) { Fault(error); throw; }
     }
 
-    private Dictionary<string, Villager> ReadPopulation()
+    private Dictionary<string, Villager> ReadPopulation(bool diagnose)
     {
         if (!players.TryGetLocalPlayer(out var player)) throw new TribeUnavailableException("Local player is unavailable.");
         var population = GameObjectResolver.FindUnique<PopulationManager>();
@@ -188,14 +189,31 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         var ambiguous = new HashSet<string>(StringComparer.Ordinal);
         var registered = population.GetPopulation();
         if (registered is null) throw new TribeUnavailableException("Registered population is unavailable.");
+        var total = 0;
+        var living = 0;
+        var authoritative = 0;
+        var sameTeam = 0;
+        var noGuestStation = 0;
+        var sameSettlement = 0;
         foreach (var villager in registered)
         {
-            if (!villager || villager.IsDead || !villager.HasAuthority || villager.teamId != player!.TeamId
-                || villager._guestStation || villager.GetSettlement() != settlement) continue;
+            total++;
+            if (!villager || villager.IsDead) continue;
+            living++;
+            if (!villager.HasAuthority) continue;
+            authoritative++;
+            if (villager.teamId != player!.TeamId) continue;
+            sameTeam++;
+            if (villager._guestStation) continue;
+            noGuestStation++;
+            if (villager.GetSettlement() != settlement) continue;
+            sameSettlement++;
             var id = villager.GetGuid();
             if (string.IsNullOrWhiteSpace(id) || ambiguous.Contains(id)) continue;
             if (!result.TryAdd(id, villager)) { result.Remove(id); ambiguous.Add(id); }
         }
+        if (diagnose)
+            LastDiscoverySummary = $"Registered {total}; living {living}; authority {authoritative}; local team {sameTeam}; no guest station {noGuestStation}; current settlement {sameSettlement}; unique ID {result.Count}.";
         return result;
     }
 

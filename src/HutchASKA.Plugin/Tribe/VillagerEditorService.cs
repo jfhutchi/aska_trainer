@@ -7,6 +7,7 @@ namespace HutchASKA.Plugin.Tribe;
 internal sealed class VillagerEditorService(ITribeContext tribe) : NativeActionFeature("tribe.editor", "Villager Editor")
 {
     public string? ContextError => (tribe as ITribeContextStatus)?.LastError;
+    public string? DiscoverySummary => (tribe as ITribeContextStatus)?.LastDiscoverySummary;
     public override CompatibilityResult ProbeCompatibility() => AskaTribeContext.ProbeCompatibility();
 
     public bool TryGet(string stableId, out VillagerSnapshot? snapshot, out string? error)

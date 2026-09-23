@@ -19,7 +19,8 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
     private string query = "";
     private string? message;
     private int page;
-    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; }
+    private bool hasRefreshed;
+    public void Clear() { villagers = matches = Array.Empty<VillagerSnapshot>(); selected = null; edits = new(); message = null; query = ""; page = 0; hasRefreshed = false; }
 
     public void Draw()
     {
@@ -51,6 +52,8 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
         }
         page = Math.Clamp(page, 0, Math.Max(0, (matches.Count - 1) / 12));
         GUILayout.Label($"{matches.Count} current snapshot(s) | Page {page + 1}");
+        if (hasRefreshed && villagers.Count == 0 && editor.DiscoverySummary is { } summary)
+            GUILayout.Label("Tribe lookup: " + summary);
         GUILayout.BeginHorizontal();
         if (GUILayout.Button("Previous")) { page = Math.Max(0, page - 1); selected = null; edits = new(); }
         if (GUILayout.Button("Next")) { page = Math.Min(Math.Max(0, (matches.Count - 1) / 12), page + 1); selected = null; edits = new(); }
@@ -86,7 +89,7 @@ internal sealed class TribeTab(FeatureControls controls, SinglePlayerGuard guard
 
     private void RefreshList()
     {
-        editor.TryList(out villagers, out message);
+        hasRefreshed = editor.TryList(out villagers, out message);
         matches = VillagerSearch.Filter(villagers, query);
         selected = null; edits = new(); page = 0;
     }
