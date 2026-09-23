@@ -42,7 +42,7 @@ internal sealed class FreeBuildingFeature(SinglePlayerGuard guard) : NativeFeatu
         scanPending = true;
         waived = 0;
         reportedWaivers = -1;
-        StatusReason = "Waives construction materials except for farm plots; normal building work is still required.";
+        StatusReason = "Waives construction materials except for farm plots and spline roads; normal building work is still required.";
         return base.TryEnable();
     }
 
@@ -59,7 +59,7 @@ internal sealed class FreeBuildingFeature(SinglePlayerGuard guard) : NativeFeatu
         if (waived != reportedWaivers)
         {
             reportedWaivers = waived;
-            StatusReason = $"Waives materials except for farm plots; normal building work required. Supply checks applied: {waived}.";
+            StatusReason = $"Waives materials except for farm plots and spline roads; normal building work required. Supply checks applied: {waived}.";
         }
     }
 
@@ -67,6 +67,8 @@ internal sealed class FreeBuildingFeature(SinglePlayerGuard guard) : NativeFeatu
     {
         if (!part || !part.isActiveAndEnabled || part._forceBuilt || part.container is null
             || !part.buildInteraction || !part.supplyInteraction) return false;
+        // Spline roads maintain separate per-section supply and terrain state.
+        if (part.TryCast<StructureSplineLayoutBuildPart>() is not null) return false;
         var site = part.buildSite;
         if (!site || !site!.session || !site.session.isMaster || site.GetCurrentLayer() != part._layer) return false;
         var structure = site.Structure;

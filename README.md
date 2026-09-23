@@ -6,6 +6,13 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Version 0.1.19 excludes spline roads from Free Building. Road construction has
+its own per-section supply and terrain flow, which the normal structure waiver
+was not designed to handle. Roads require their usual materials even with Free
+Building enabled. This follows an in-game road failure reported with Free
+Building on; a road retest is needed. The 0.1.18 bench-speed control is unchanged
+and still needs player and villager in-game checks.
+
 Version 0.1.18 adds a shared 1x/3x Bench Craft Speed control under Crafting &
 Building for the local player and owned villagers. It boosts only progress
 earned by active crafting-bench sessions and leaves native recipe completion,
@@ -85,7 +92,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.18` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.19` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.
