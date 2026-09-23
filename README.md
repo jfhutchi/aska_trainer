@@ -11,7 +11,10 @@ Version 0.1.17 lets bulk tribe actions and ongoing needs maintenance target the
 individual editor also accepts a positive, unique native persistent ID as a
 fallback. Missing or duplicate IDs still cannot select a villager. A zero-target
 restore now reports that no owned villagers were found instead of claiming to
-restore zero. In-game confirmation of filled needs is pending.
+restore zero. The user confirmed 20 current snapshots, Restore All Needs
+updating 20 villagers, and the observed villager's food and water circles
+filling in the 0.1.17 in-game retest. Ongoing maintenance still needs a
+long-duration check.
 
 Version 0.1.16 adds a current-tribe lookup breakdown to the Tribe tab's manual
 refresh action. A live save returned zero villager snapshots and Restore All
