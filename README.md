@@ -13,8 +13,8 @@ fallback. Missing or duplicate IDs still cannot select a villager. A zero-target
 restore now reports that no owned villagers were found instead of claiming to
 restore zero. The user confirmed 20 current snapshots, Restore All Needs
 updating 20 villagers, and the observed villager's food and water circles
-filling in the 0.1.17 in-game retest. Ongoing maintenance still needs a
-long-duration check.
+filling in the 0.1.17 in-game retest. The user also confirmed that No Hunger
+and No Thirst each refill the corresponding villager need after it drops.
 
 Version 0.1.16 adds a current-tribe lookup breakdown to the Tribe tab's manual
 refresh action. A live save returned zero villager snapshots and Restore All
