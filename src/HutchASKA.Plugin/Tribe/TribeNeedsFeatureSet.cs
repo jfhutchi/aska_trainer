@@ -37,6 +37,8 @@ internal sealed class TribeRestoreFeature(ITribeContext tribe, bool heal)
         count = affected;
         error ??= operationError;
         if (!success) error = $"Updated {affected} villager(s) before a native failure. The current villager may be partially updated; refresh before retrying. {error}";
-        return success && operationError is null;
+        if (success && affected == 0 && operationError is null)
+            error = "No current owned villagers were found. Refresh Current Tribe to inspect the lookup.";
+        return success && operationError is null && affected > 0;
     }
 }

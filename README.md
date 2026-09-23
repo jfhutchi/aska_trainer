@@ -6,6 +6,13 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Version 0.1.17 lets bulk tribe actions and ongoing needs maintenance target the
+20 confirmed owned villagers even when their native GUIDs are blank. The
+individual editor also accepts a positive, unique native persistent ID as a
+fallback. Missing or duplicate IDs still cannot select a villager. A zero-target
+restore now reports that no owned villagers were found instead of claiming to
+restore zero. In-game confirmation of filled needs is pending.
+
 Version 0.1.16 adds a current-tribe lookup breakdown to the Tribe tab's manual
 refresh action. A live save returned zero villager snapshots and Restore All
 Needs updated zero villagers despite active needs options, so this diagnostic
@@ -69,7 +76,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.16` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.17` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Globalization;
 using HarmonyLib;
 using HutchASKA.Core.Features;
 using HutchASKA.Core.Player;
@@ -77,7 +78,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         try
         {
             // One population snapshot per synchronous batch; each write rechecks live membership.
-            foreach (var villager in ResolvePopulation().Values)
+            foreach (var villager in ResolvePopulationView().Members)
             {
                 ApplyTo(villager, request);
                 count++;
@@ -169,7 +170,10 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
     private Villager Resolve(string id) => ResolvePopulation().TryGetValue(id, out var villager)
         ? villager : throw new TribeUnavailableException("Villager is no longer a live, owned member of the current tribe. Refresh the list.");
 
-    private Dictionary<string, Villager> ResolvePopulation(bool diagnose = false)
+    private Dictionary<string, Villager> ResolvePopulation(bool diagnose = false) =>
+        ResolvePopulationView(diagnose).ById;
+
+    private PopulationView ResolvePopulationView(bool diagnose = false)
     {
         RequireSession();
         if (nativeFault is not null) throw new InvalidOperationException(nativeFault);
@@ -178,7 +182,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         catch (Exception error) { Fault(error); throw; }
     }
 
-    private Dictionary<string, Villager> ReadPopulation(bool diagnose)
+    private PopulationView ReadPopulation(bool diagnose)
     {
         if (!players.TryGetLocalPlayer(out var player)) throw new TribeUnavailableException("Local player is unavailable.");
         var population = GameObjectResolver.FindUnique<PopulationManager>();
@@ -186,6 +190,7 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         if (!population || population!.IsLoading || !settlement)
             throw new TribeUnavailableException("Current population or settlement is unavailable or ambiguous.");
         var result = new Dictionary<string, Villager>(StringComparer.Ordinal);
+        var members = new List<Villager>();
         var ambiguous = new HashSet<string>(StringComparer.Ordinal);
         var registered = population.GetPopulation();
         if (registered is null) throw new TribeUnavailableException("Registered population is unavailable.");
@@ -195,6 +200,8 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
         var sameTeam = 0;
         var noGuestStation = 0;
         var sameSettlement = 0;
+        var withGuid = 0;
+        var withPersistentId = 0;
         foreach (var villager in registered)
         {
             total++;
@@ -208,14 +215,25 @@ internal sealed class AskaTribeContext(IPlayerContext players, SinglePlayerGuard
             noGuestStation++;
             if (villager.GetSettlement() != settlement) continue;
             sameSettlement++;
-            var id = villager.GetGuid();
+            members.Add(villager);
+            var guid = villager.GetGuid();
+            if (!string.IsNullOrWhiteSpace(guid)) withGuid++;
+            var persistentId = villager.PersistentUniqueID;
+            if (persistentId > 0) withPersistentId++;
+            var id = !string.IsNullOrWhiteSpace(guid) ? "guid:" + guid
+                : persistentId > 0 ? "persistent:" + persistentId.ToString(CultureInfo.InvariantCulture) : null;
             if (string.IsNullOrWhiteSpace(id) || ambiguous.Contains(id)) continue;
             if (!result.TryAdd(id, villager)) { result.Remove(id); ambiguous.Add(id); }
         }
         if (diagnose)
-            LastDiscoverySummary = $"Registered {total}; living {living}; authority {authoritative}; local team {sameTeam}; no guest station {noGuestStation}; current settlement {sameSettlement}; unique ID {result.Count}.";
-        return result;
+        {
+            var rechecked = members.Count(IsCurrentVillager);
+            LastDiscoverySummary = $"Registered {total}; living {living}; authority {authoritative}; local team {sameTeam}; no guest station {noGuestStation}; current settlement {sameSettlement}; GUID {withGuid}; persistent ID {withPersistentId}; editable {result.Count}; needs targets {members.Count}; live recheck {rechecked}.";
+        }
+        return new(members, result);
     }
+
+    private sealed record PopulationView(List<Villager> Members, Dictionary<string, Villager> ById);
 
     private void RequireSession()
     {
