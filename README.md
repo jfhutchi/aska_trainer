@@ -6,6 +6,12 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Version 0.1.18 adds a shared 1x/3x Bench Craft Speed control under Crafting &
+Building for the local player and owned villagers. It boosts only progress
+earned by active crafting-bench sessions and leaves native recipe completion,
+ingredient use and products in place. The option starts off on world load;
+player and villager bench work still need separate in-game acceptance.
+
 Version 0.1.17 lets bulk tribe actions and ongoing needs maintenance target the
 20 confirmed owned villagers even when their native GUIDs are blank. The
 individual editor also accepts a positive, unique native persistent ID as a
@@ -79,7 +85,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.17` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.18` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.

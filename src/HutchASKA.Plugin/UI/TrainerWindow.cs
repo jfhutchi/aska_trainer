@@ -7,6 +7,7 @@ using HutchASKA.Plugin.World;
 using HutchASKA.Plugin.UI.Tabs;
 using HutchASKA.Plugin.Items;
 using HutchASKA.Plugin.Tribe;
+using HutchASKA.Plugin.Crafting;
 
 namespace HutchASKA.Plugin.UI;
 
@@ -33,7 +34,7 @@ internal sealed class TrainerWindow
     private bool closeRequested;
 
     public TrainerWindow(FeatureHost host, SinglePlayerGuard guard, RuntimeVersions versions, RuntimeConfiguration config,
-        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain,
+        MovementSpeedFeature movement, GameSpeedFeature speed, TimeStepFeature timeStep, HarvestSpeedFeature harvesting, BuildSpeedFeature building, BenchCraftSpeedFeature benchCraftSpeed, TerrainLevelingFeature terrain,
         FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms, AskaItemCatalog catalog, GiveItemFeature give,
         VillagerEditorService editor, TribeRestoreFeature healTribe, TribeRestoreFeature restoreTribe, RecruitRerollFeature reroll,
         SkillGainFeature playerSkills, SkillGainFeature tribeSkills, TribeBuildSpeedFeature tribeBuilding, TribeHarvestSpeedFeature tribeHarvesting,
@@ -46,7 +47,7 @@ internal sealed class TrainerWindow
         playerTab = new PlayerTab(controls, movement, playerSkills, config);
         worldTab = new WorldTab(controls, speed, timeStep, weather, config);
         itemsTab = new ItemsTab(controls, guard, catalog, give);
-        craftingTab = new CraftingTab(controls, building, terrain, config);
+        craftingTab = new CraftingTab(controls, building, benchCraftSpeed, terrain, config);
         tribeTab = new TribeTab(controls, guard, editor, healTribe, restoreTribe,
             tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, config);
         tribeSummonTab = new TribeSummonTab(controls, new RecruitRerollPanel(reroll, controls));

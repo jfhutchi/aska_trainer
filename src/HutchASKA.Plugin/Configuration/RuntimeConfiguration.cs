@@ -5,6 +5,7 @@ using HutchASKA.Plugin.Infrastructure;
 using HutchASKA.Plugin.Player;
 using HutchASKA.Plugin.World;
 using HutchASKA.Plugin.Tribe;
+using HutchASKA.Plugin.Crafting;
 using HutchASKA.Core.Compatibility;
 
 namespace HutchASKA.Plugin.Configuration;
@@ -17,6 +18,7 @@ internal sealed class RuntimeConfiguration
     private readonly GameSpeedFeature speed;
     private readonly HarvestSpeedFeature harvesting;
     private readonly BuildSpeedFeature building;
+    private readonly BenchCraftSpeedFeature benchCraftSpeed;
     private readonly TerrainLevelingFeature terrain;
     private readonly FishingAssistFeature fishing;
     private readonly MushroomRegrowthFeature mushrooms;
@@ -31,6 +33,7 @@ internal sealed class RuntimeConfiguration
     public ConfigEntry<float> GameSpeed { get; }
     public ConfigEntry<int> HarvestSpeed { get; }
     public ConfigEntry<int> BuildSpeed { get; }
+    public ConfigEntry<int> BenchCraftSpeed { get; }
     public ConfigEntry<int> TerrainSize { get; }
     public ConfigEntry<int> FishingBiteSpeed { get; }
     public ConfigEntry<int> FishingRareWeight { get; }
@@ -44,7 +47,7 @@ internal sealed class RuntimeConfiguration
     public ConfigEntry<int> TribeMovementSpeed { get; }
     public ConfigEntry<DiagnosticVerbosity> Verbosity { get; }
     public event Action? TransientStateCleared;
-    public RuntimeConfiguration(ConfigFile config, FeatureHost host, MovementSpeedFeature movement, GameSpeedFeature speed, HarvestSpeedFeature harvesting, BuildSpeedFeature building, TerrainLevelingFeature terrain,
+    public RuntimeConfiguration(ConfigFile config, FeatureHost host, MovementSpeedFeature movement, GameSpeedFeature speed, HarvestSpeedFeature harvesting, BuildSpeedFeature building, BenchCraftSpeedFeature benchCraftSpeed, TerrainLevelingFeature terrain,
         FishingAssistFeature fishing, MushroomRegrowthFeature mushrooms, SkillGainFeature playerSkills,
         SkillGainFeature tribeSkills, TribeBuildSpeedFeature tribeBuilding, TribeHarvestSpeedFeature tribeHarvesting,
         TribeMovementSpeedFeature tribeMovement)
@@ -55,6 +58,7 @@ internal sealed class RuntimeConfiguration
         this.speed = speed;
         this.harvesting = harvesting;
         this.building = building;
+        this.benchCraftSpeed = benchCraftSpeed;
         this.terrain = terrain;
         this.fishing = fishing;
         this.mushrooms = mushrooms;
@@ -68,6 +72,7 @@ internal sealed class RuntimeConfiguration
         GameSpeed = config.Bind("World", "GameSpeedMultiplier", 1f, "Game speed multiplier, 0.5 to 5.");
         HarvestSpeed = config.Bind("Player", "HarvestSpeedMultiplier", 1, "Player harvesting speed preset: 1 (normal), 2, 3 or 4. Does not change global game speed.");
         BuildSpeed = config.Bind("Crafting", "BuildSpeedMultiplier", 1, "Construction work per player hammer stroke: 1 (normal), 2, 3 or 4. Material requirements are separate.");
+        BenchCraftSpeed = config.Bind("Crafting", "BenchCraftSpeedMultiplier", 1, "Player and owned-villager work at crafting benches: 1 (normal) or 3. Recipe requirements remain native.");
         TerrainSize = config.Bind("Crafting", "TerrainLevelingSize", 5, "Maximum terrain leveling plan side in grid tiles: 5 to 20. Applies to new leveling plans.");
         FishingBiteSpeed = config.Bind("Fishing", "BiteSpeed", 1, "Bite wait speed: 1 (normal), 2 or 4.");
         FishingRareWeight = config.Bind("Fishing", "RareFishWeight", 1, "Eligible rare-fish selection weight: 1 (normal), 20, 30, 40 or 50. Other values, including legacy 2 and 4, reset to normal. Not a guaranteed catch percentage.");
@@ -86,6 +91,7 @@ internal sealed class RuntimeConfiguration
         speed.Multiplier.Value = GameSpeed.Value;
         harvesting.Multiplier.Value = Math.Clamp(HarvestSpeed.Value, 1, 4);
         building.Multiplier.Value = Math.Clamp(BuildSpeed.Value, 1, 4);
+        benchCraftSpeed.Multiplier.Value = BenchCraftSpeed.Value == 3 ? 3 : 1;
         terrain.Size.Value = Math.Clamp(TerrainSize.Value, 5, 20);
         LoadAssistSettings();
         ClearPerWorldSwitches();
@@ -116,13 +122,14 @@ internal sealed class RuntimeConfiguration
     {
         var gameplay = host.Registry.Snapshot().Where(f => !f.Id.StartsWith("ui.", StringComparison.Ordinal)
             || f is HostedFeature { HasPendingCleanup: true }).ToArray();
-        FeatureReset.ResetAll(gameplay, movement.Multiplier, speed.Multiplier, harvesting.Multiplier, building.Multiplier,
+        FeatureReset.ResetAll(gameplay, movement.Multiplier, speed.Multiplier, harvesting.Multiplier, building.Multiplier, benchCraftSpeed.Multiplier,
             fishing.BiteSpeed, fishing.RareWeight, mushrooms.Multiplier, playerSkills.Multiplier,
             tribeSkills.Multiplier, tribeBuilding.Multiplier, tribeHarvesting.Multiplier, tribeMovement.Multiplier);
         Movement.Value = 1;
         GameSpeed.Value = 1;
         HarvestSpeed.Value = 1;
         BuildSpeed.Value = 1;
+        BenchCraftSpeed.Value = 1;
         terrain.Size.Value = 5;
         TerrainSize.Value = 5;
         FishingBiteSpeed.Value = 1;
@@ -149,6 +156,7 @@ internal sealed class RuntimeConfiguration
         speed.Multiplier.Value = GameSpeed.Value;
         harvesting.Multiplier.Value = Math.Clamp(HarvestSpeed.Value, 1, 4);
         building.Multiplier.Value = Math.Clamp(BuildSpeed.Value, 1, 4);
+        benchCraftSpeed.Multiplier.Value = BenchCraftSpeed.Value == 3 ? 3 : 1;
         terrain.Size.Value = Math.Clamp(TerrainSize.Value, 5, 20);
         LoadAssistSettings();
         ClearPerWorldSwitches();

@@ -23,7 +23,7 @@ public sealed class Plugin : BasePlugin
     internal IWorldContext World { get; } = new AskaWorldContext();
     public const string PluginGuid = "com.jfhutchi.hutchaska";
     public const string PluginName = "HutchASKA";
-    public const string PluginVersion = "0.1.17";
+    public const string PluginVersion = "0.1.18";
 
     public override void Load()
     {
@@ -77,6 +77,8 @@ public sealed class Plugin : BasePlugin
         var repairs = new FreeRepairsFeature();
         repairs.Hosted = host.Register(repairs);
         var tribe = new AskaTribeContext(Players, guard, error => Log.LogError($"Tribe discovery: {error}"));
+        var benchCraftSpeed = new BenchCraftSpeedFeature(Players, tribe);
+        benchCraftSpeed.Hosted = host.Register(benchCraftSpeed);
         var playerSkills = new SkillGainFeature(Players, tribe, false);
         playerSkills.Hosted = host.Register(playerSkills);
         var tribeSkills = new SkillGainFeature(Players, tribe, true);
@@ -108,7 +110,7 @@ public sealed class Plugin : BasePlugin
         restoreTribe.Hosted = host.Register(restoreTribe);
         var editor = new VillagerEditorService(tribe);
         editor.Hosted = host.Register(editor);
-        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, terrain, fishing, mushrooms,
+        var config = new RuntimeConfiguration(Config, host, movement, gameSpeed, harvesting, buildSpeed, benchCraftSpeed, terrain, fishing, mushrooms,
             playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement);
         var hotkeys = new HotkeyManager(Config, host, guard);
         var bepinexAssembly = typeof(BasePlugin).Assembly;
@@ -117,7 +119,7 @@ public sealed class Plugin : BasePlugin
         var versions = new RuntimeVersions(Application.version, Application.unityVersion, bepinexVersion,
             SteamBuildReader.Detect(error => Log.LogWarning($"Steam build detection: {error}")));
         var diagnostics = new DiagnosticsService(host, guard, config, versions, () => tribe.LastError, Log);
-        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, terrain, fishing, mushrooms, catalog, give, editor, healTribe, restoreTribe, reroll,
+        var window = new TrainerWindow(host, guard, versions, config, movement, gameSpeed, timeStep, harvesting, buildSpeed, benchCraftSpeed, terrain, fishing, mushrooms, catalog, give, editor, healTribe, restoreTribe, reroll,
             playerSkills, tribeSkills, tribeBuilding, tribeHarvesting, tribeMovement, weather, diagnostics,
             error => Log.LogError($"Trainer rendering failed; the menu is disabled until restart. Cursor and menu input will be released. {error}"));
         // BepInEx registers the IL2CPP type and attaches it to its persistent manager object.
