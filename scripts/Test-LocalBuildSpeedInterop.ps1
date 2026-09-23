@@ -32,7 +32,20 @@ try {
             throw "Withdrawn item processing hook is still compiled: $withdrawn"
         }
     }
-    foreach ($name in @('Items.InfiniteDurabilityFeature', 'Items.NoSpoilageFeature', 'World.MushroomRegrowthFeature')) {
+    $durability = $plugin.MainModule.GetType('HutchASKA.Plugin.Items.InfiniteDurabilityFeature')
+    $durabilityEnable = $durability.Methods | Where-Object Name -eq 'TryEnable'
+    $durabilityPrefix = $durability.Methods | Where-Object Name -eq 'SetValuePrefix'
+    if (-not $durabilityEnable -or -not $durabilityPrefix -or
+        $durabilityPrefix.Parameters.Count -ne 2 -or
+        $durabilityPrefix.Parameters[0].ParameterType.FullName -ne 'SandSailorStudio.Attributes.Property' -or
+        $durabilityPrefix.Parameters[1].ParameterType.FullName -ne 'System.Single' -or
+        'SetValue' -cnotin @($durabilityEnable.Body.Instructions | Where-Object { $_.OpCode.Name -eq 'ldstr' } | ForEach-Object Operand) -or
+        @($durability.Methods | Where-Object HasBody | ForEach-Object { $_.Body.Instructions } | Where-Object {
+            $_.Operand -is [Mono.Cecil.MethodReference] -and $_.Operand.Name -in @('Run', '_DealDurabilityDamage')
+        }).Count -gt 0) {
+        throw 'Durability must use the by-value property setter, not the withdrawn primitive-byref item hooks.'
+    }
+    foreach ($name in @('Items.NoSpoilageFeature', 'World.MushroomRegrowthFeature')) {
         $itemFeature = $plugin.MainModule.GetType("HutchASKA.Plugin.$name")
         $probe = $itemFeature.Methods | Where-Object Name -eq 'ProbeCompatibility'
         $enableItem = $itemFeature.Methods | Where-Object Name -eq 'TryEnable'
@@ -51,6 +64,6 @@ try {
         }).Count -gt 0) { throw 'Withdrawn mushroom timer hook remains compiled.' }
     Write-Output 'PASS: Mushroom regrowth rejects activation and contains no timer writes or hooks.'
     Write-Output 'PASS: Build Speed uses the local event/configuration hooks and does not reference the withdrawn primitive-byref work hook. Native progress still requires a game test.'
-    Write-Output 'PASS: The failing item decay/wear hooks are absent and their controls reject activation.'
+    Write-Output 'PASS: Durability uses a by-value property setter; withdrawn item decay/wear hooks are absent and No Spoilage remains unavailable.'
 }
 finally { $plugin.Dispose(); $game.Dispose() }

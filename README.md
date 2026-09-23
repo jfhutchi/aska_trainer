@@ -6,6 +6,14 @@ HutchASKA is a free, open-source, single-player in-game trainer for the Steam ga
 
 ## Status
 
+Version 0.1.20 restores Infinite Durability for the local player's carried,
+equipped and stowed equipment. It intercepts increases in the native decay
+property through its by-value setter; existing wear is retained, repairs can
+reduce wear, and unrelated items remain under game control. The old by-reference
+item hooks remain withdrawn. The Items tab reports how many equipment properties
+are tracked and how many wear increases were stopped. This needs an in-game test
+with a partly worn tool before runtime support can be confirmed.
+
 Version 0.1.19 excludes spline roads from Free Building. Road construction has
 its own per-section supply and terrain flow, which the normal structure waiver
 was not designed to handle. Roads require their usual materials even with Free
@@ -92,7 +100,7 @@ toggles, while Free Building/Free Repairs already operate on shared eligible
 structures. Fishing assists and consumable-retention transactions remain scoped
 to the player; the parity audit records further villager-specific work.
 
-**Version `0.1.19` is a development candidate requiring gameplay acceptance.**
+**Version `0.1.20` is a development candidate requiring gameplay acceptance.**
 Fishing & Foraging offers bite-speed presets (1x/2x/4x), eligible rare-fish-weight
 presets (normal/20x/30x/40x/50x) and Easy Catch. Rare weights are relative weights,
 not guaranteed catch percentages; bait and native eligibility still apply.

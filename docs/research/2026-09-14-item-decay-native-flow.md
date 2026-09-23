@@ -1,5 +1,21 @@
 # Item decay and equipment wear: native investigation
 
+## 2026-09-23 replacement candidate
+
+Version 0.1.20 adds player-only Infinite Durability through the by-value
+`Property.SetValue(float)` boundary. Current ASKA build 25440748 dispatches tool
+hit wear, periodic equipment decay, and digging wear through the virtual setter
+at property vtable slot `0x188`. The base `Property`, `Attribute`, and
+`VariableAttribute` setter implementations are all patched because the latter
+two override it. The feature admits only the current player's carried, equipped,
+or stowed `EquipmentItem` whose decay property is ID 1010. It blocks only finite
+new values greater than the existing value. Repair and other decreases run
+normally. A 250 ms pointer refresh avoids scanning the inventory for every
+world-item decay update; a matching setter rechecks live ownership before
+blocking. No item wrapper is retained between calls. The old by-reference
+`Run` and `_DealDurabilityDamage` hooks remain absent. Native gameplay testing is
+pending; no result is claimed for No Spoilage.
+
 ## 2026-09-21 status correction
 
 Version 0.1.6 withdraws Infinite Durability and No Spoilage after the latest
