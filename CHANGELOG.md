@@ -4,6 +4,16 @@ Notable changes to HutchASKA are documented here, grouped by release and change 
 
 ## [Unreleased]
 
+### 0.1.20 beta
+
+- Added a player-equipment Infinite Durability control using the native by-value decay setter. It does not repair existing damage. Gameplay acceptance is pending.
+- Kept spline roads on their normal material path when Free Building is on. The road failure was reported on an earlier build; the corrected path still needs a live retest.
+- Added a 1x/3x crafting-bench work-speed control for the local player and owned villagers. Native materials and completion remain in charge; both paths need live checks.
+- Fixed tribe identification for villagers with blank GUIDs when a unique persistent ID exists. The user confirmed 20 snapshots, Restore All Needs filling food and water for 20 villagers, and the No Hunger/No Thirst controls refilling the matching need.
+- Moved recruitment controls into a separate Tribe Summon tab and made gameplay options start off whenever a world loads.
+- Excluded farm plots from Free Building's supply waiver after a farm activation crash. The user confirmed farm-plot construction with Free Building on.
+- Published a beta package containing only HutchASKA-authored assemblies, documentation and license notices. The newest controls have not been verified in game.
+
 ### Fixed in 0.1.12 development candidate
 
 - Rebuild the owned opaque trainer skin after leaving a confirmed world and whenever ASKA replaces its active IMGUI skin. Runtime-created skin textures now opt out of Unity's unused-resource unloading, so returning to the main menu and entering another world cannot silently remove the readable backgrounds.

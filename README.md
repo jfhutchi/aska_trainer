@@ -119,7 +119,10 @@ spoilage and leveling apply. Trainer options start off on every world load.
 
 The user reported approximately 115 FPS and supplied readable screenshots for 0.1.2 after the earlier readability/performance repair. That observation does not validate the new controls or their FPS impact. See the [0.1.3 retest](docs/testing/movement-harvest-close-retest.md), [release checklist](docs/testing/v1-release-checklist.md), [earlier repair evidence](docs/testing/readability-performance-repair.md) and [implementation ledger](docs/testing/implementation-status.md).
 
-Source projects and local build/install helpers are available. No validated release archive has been published. An in-game smoke test is required before a release can claim runtime compatibility.
+Source projects and local build/install helpers are available. The 0.1.20 beta
+archive is published in [GitHub Releases](https://github.com/jfhutchi/aska_trainer/releases/tag/v0.1.20-beta).
+It has not received an in-game smoke test for the newest controls and should
+not be treated as a validated gameplay release.
 
 ## Compatibility
 
@@ -212,11 +215,14 @@ Follow the [official BepInEx IL2CPP installation guide](https://docs.bepinex.dev
 
 ## Install a Release
 
-No validated release is published. For an explicitly selected local development candidate:
+The [0.1.20 beta release](https://github.com/jfhutchi/aska_trainer/releases/tag/v0.1.20-beta)
+contains a game-root ZIP. Its newest controls still require gameplay testing.
 
 1. Read its compatibility matrix and known limitations. Back up the save you intend to use.
 2. Install the specified BepInEx IL2CPP build separately, launch ASKA once to generate interop, then exit ASKA.
-3. Extract the ZIP's `HutchASKA` folder into `ASKA\BepInEx\plugins\`, preserving its license, notices and build information. Both authored assemblies are required:
+3. Extract the ZIP into the folder containing `ASKA.exe`. It already contains
+   `BepInEx\plugins\HutchASKA\`; preserve that directory structure and the
+   license, notices and build information. Both authored assemblies are required:
 
    ```text
    ASKA\BepInEx\plugins\HutchASKA\HutchASKA.Plugin.dll
@@ -256,7 +262,17 @@ Create a local development candidate with PowerShell 7:
 .\scripts\Package-Release.ps1
 ```
 
-Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.6.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+Packaging rebuilds without debug records containing local paths, copies only an explicit file allowlist, validates assembly identities and ZIP contents, and writes `artifacts/HutchASKA-v0.1.20.zip`. Both authored DLLs are required. It includes README.txt, LICENSE, THIRD_PARTY_NOTICES.md, BUILDINFO.txt and three runtime-license texts. BUILDINFO records the source commit and whether changes were uncommitted. Game, BepInEx, Harmony and generated interop binaries are rejected. A package is not evidence of gameplay acceptance.
+
+To convert that archive into the game-root layout used for the beta download:
+
+```powershell
+.\scripts\Package-Nexus.ps1 -Version 0.1.20
+```
+
+This creates `artifacts/HutchASKA-v0.1.20-Nexus-beta.zip` from the clean release
+archive and checks the authored DLL hashes. The download ZIP includes a short
+installation README; the full project documentation remains here.
 
 Repository-relative research/checklist links in the packaged README refer to the matching source checkout identified in BUILDINFO; those source documents are not duplicated in the ZIP.
 
