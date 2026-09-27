@@ -17,6 +17,6 @@ public sealed class VillagerSearchTests
     public void SortingHasStableTieBreakersIndependentOfPopulationOrder()
     {
         var villagers = new[] { Villager("2", "Alva"), Villager("1", "Alva"), Villager("3", "Bjorn") };
-        Assert.Equal(new[] { "1", "2", "3" }, VillagerSearch.Filter(villagers.Reverse(), " ").Select(v => v.StableId));
+        Assert.Equal(new[] { "1", "2", "3" }, VillagerSearch.Filter(villagers.AsEnumerable().Reverse(), " ").Select(v => v.StableId));
     }
 }
